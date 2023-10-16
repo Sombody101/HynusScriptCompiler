@@ -101,6 +101,11 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
                 break;
         }
 
+        foreach (var item in RuntimeMembers.BuiltInFunctions.Keys)
+        {
+            Console.WriteLine(item);
+        }
+
         return null;
     }
 

@@ -1,0 +1,29 @@
+<svg width="3265" height="1266" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" overflow="hidden">
+    <style>
+        @font-face {
+            font-family: 'Lighters DEMO';
+            src: url('lightersdemo-z8p30-webfont.woff2') format('woff2'),
+                 url('lightersdemo-z8p30-webfont.woff') format('woff');
+        }
+
+        @font-face {
+            font-family: 'Yeysk';
+            src: url('yeyskregular-jzam-webfont.woff2') format('woff2'),
+                 url('yeyskregular-jzam-webfont.woff') format('woff');
+        }
+    </style>
+    <g transform="translate(-539 -668)">
+        <text fill="#D700FF" font-family="Lighters DEMO,Lighters DEMO_MSFontService,sans-serif" font-style="oblique" font-weight="400" font-size="440" transform="matrix(1 0 0 1 803 1196)">
+            Hynus
+        </text>
+        <text fill="#FFFF00" font-family="Lighters DEMO,Lighters DEMO_MSFontService,sans-serif" font-weight="400" font-size="440" transform="matrix(1 0 0 1 1534.35 1537)">
+            script
+        </text>
+        <text fill="#FFFFFF" font-family="Yeysk,Yeysk_MSFontService,sans-serif" font-weight="400" font-size="64" transform="matrix(1 0 0 1 784.558 1331)">
+            Hynus wynus
+        </text>
+        <text fill="#FFFFFF" font-family="Yeysk,Yeysk_MSFontService,sans-serif" font-weight="400" font-size="64" transform="matrix(1 0 0 1 923.777 1408)">
+            automation
+        </text>
+    </g>
+</svg>
