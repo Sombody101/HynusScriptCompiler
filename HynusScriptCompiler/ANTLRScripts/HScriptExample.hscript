@@ -1,0 +1,36 @@
+
+// This is an example ("//" and "#" denotes a comment)
+
+run procs -name *Hy // This is a command reference ("procs" is defined in my main application) (Note: a "run" operation MUST be on its own line, especially since it doesnt return anything)
+
+let terminalVar = envar "$COLORSUPPORTED"; // Parenthesis are optional, as long as there is a parameter
+
+Logging.Log(terminalVar);
+
+typedef MyType {
+    string InstanceName;
+    int InstanceIndex;
+    bool IsActive = true;
+    int Handle = 0x0002;
+}
+
+// function keyword, return type, function name, function parameters (definition required parenthasis)
+fun MyType[] CreateArray() { // "fun", "func", or "function" do the same
+    # No code right now, just for example
+}
+
+MyType[] typeArray = new MyType[] { // Also conforms to the same syntax as c#
+    new() { "Jerry", 0, true },
+    new() { "Adam", 1, false },
+}; 
+
+foreach (var item in typeArray) {
+    Logging.NewRule("New Object");
+    Logging.Log(item.InstanceName);
+    Logging.Log(item.InstanceIndex);
+    Logging.Log(item.IsActive);
+}
+
+for (int i = 0; i < typeArray.Length; i++) {
+    Logging.Log("Itteration: " + i);
+}

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HynusScriptCompiler", "HynusScriptCompiler\HynusScriptCompiler.csproj", "{AB5826C5-4132-4320-8F14-9DBE82278AF4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB5826C5-4132-4320-8F14-9DBE82278AF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB5826C5-4132-4320-8F14-9DBE82278AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB5826C5-4132-4320-8F14-9DBE82278AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB5826C5-4132-4320-8F14-9DBE82278AF4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B79333DF-1DEE-4F4A-9C03-EDAD193C91F9}
+	EndGlobalSection
+EndGlobal

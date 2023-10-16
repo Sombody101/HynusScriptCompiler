@@ -1,0 +1,34 @@
+{
+    "name": "hscript-language-support",
+    "displayName": "HScript Language Support",
+    "description": "Language support for HynusScript (HScript)",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.83.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "hscript",
+                "aliases": [
+                    "HScript",
+                    "hscript"
+                ],
+                "extensions": [
+                    ".hscript"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "hscript",
+                "scopeName": "source.hscript",
+                "path": "./syntaxes/hscript.tmLanguage.json"
+            }
+        ]
+    }
+}

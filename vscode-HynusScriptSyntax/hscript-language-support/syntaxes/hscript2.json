@@ -1,0 +1,20 @@
+{
+    "scopeName": "source.hscript",
+    "patterns": [{ "include": "#program" }],
+    "repository": {
+        "program": {
+            "patterns": [
+                { "include": "#scriptversion" },
+                { "include": "#changestyle" },
+                { "include": "#changestyle" }
+            ]
+        },
+        "scriptversion": {
+            "name": "keyword.script-config",
+            "match": "(\\?>>.*$)?"
+        },
+        "": {
+            "name": ""
+        }
+    }
+}
