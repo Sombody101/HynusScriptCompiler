@@ -7,7 +7,7 @@ namespace HynusScriptCompiler.HynusScript.HTypes;
 
 internal class HFunction
 {
-    private object Function;
+    private readonly object Function;
 
     public HFunction(Func<object[], object?> func)
     {
@@ -51,13 +51,18 @@ internal static class BuiltInFunctions
             { "WriteTitle", new(WriteTitle) },
             { "WriteData", new(WriteData) },
 
-            { "exit", new(ExitScript) },
-            { "delete", new(DeleteMember) },
+            // Environment
             { "GetType", new(GetType) },
             { "SizeOf", new(SizeOf) },
             { "ListVariables", new(ListVariables) },
+
+            // Keyword methods
+            { "delete", new(DeleteMember) },
+            { "exit", new(ExitScript) },
         };
     }
+
+    /* Method Name Manupulation */
 
     /// <summary>
     /// Gets all built in functions in camelCase

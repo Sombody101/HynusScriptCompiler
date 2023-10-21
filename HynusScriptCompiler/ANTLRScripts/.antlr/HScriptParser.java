@@ -900,8 +900,8 @@ public class HScriptParser extends Parser {
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class InterpolatedStringExpressionContext extends ExpressionContext {
-		public NestedVariableContext nestedVariable() {
-			return getRuleContext(NestedVariableContext.class,0);
+		public InterpolatedStringContext interpolatedString() {
+			return getRuleContext(InterpolatedStringContext.class,0);
 		}
 		public InterpolatedStringExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
@@ -1123,7 +1123,7 @@ public class HScriptParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(154);
-				nestedVariable();
+				interpolatedString();
 				}
 				break;
 			case 4:
@@ -2154,7 +2154,7 @@ public class HScriptParser extends Parser {
 		"\u00030\u0018\u0000\u0093\u0013\u0001\u0000\u0000\u0000\u0094\u0095\u0005"+
 		"<\u0000\u0000\u0095\u0096\u0005<\u0000\u0000\u0096\u0015\u0001\u0000\u0000"+
 		"\u0000\u0097\u0098\u0006\u000b\uffff\uffff\u0000\u0098\u00a5\u0003*\u0015"+
-		"\u0000\u0099\u00a5\u0003\u0018\f\u0000\u009a\u00a5\u0003\u0018\f\u0000"+
+		"\u0000\u0099\u00a5\u0003\u0018\f\u0000\u009a\u00a5\u0003\u001a\r\u0000"+
 		"\u009b\u00a5\u0005<\u0000\u0000\u009c\u00a5\u0003\u0010\b\u0000\u009d"+
 		"\u009e\u0005\u0003\u0000\u0000\u009e\u009f\u0003\u0016\u000b\u0000\u009f"+
 		"\u00a0\u0005\u0004\u0000\u0000\u00a0\u00a5\u0001\u0000\u0000\u0000\u00a1"+

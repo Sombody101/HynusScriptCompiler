@@ -175,17 +175,17 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitBooleanExpression([NotNull] HScriptParser.BooleanExpressionContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="HScriptParser.nestedVariable"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitNestedVariable([NotNull] HScriptParser.NestedVariableContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.interpolatedString"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitInterpolatedString([NotNull] HScriptParser.InterpolatedStringContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.nestedVariable"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNestedVariable([NotNull] HScriptParser.NestedVariableContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.unaryOp"/>.
 	/// </summary>
@@ -246,6 +246,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitChangeStyle([NotNull] HScriptParser.ChangeStyleContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.changeDefault"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitChangeDefault([NotNull] HScriptParser.ChangeDefaultContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.block"/>.
 	/// </summary>

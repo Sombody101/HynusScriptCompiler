@@ -2,7 +2,7 @@ grammar HScript;
 
 program: scriptVersion? changeStyle? line* EOF;
 
-line: statement | ifBlock | whileBlock;
+line: statement | ifBlock | whileBlock | changeDefault;
 
 statement: (assignment | functionCall) ';'?;
 
@@ -26,8 +26,8 @@ exceptionInfo: IDENTIFIER IDENTIFIER;
 
 expression
     :   constant                                    #constantExpression
-    |   nestedVariable                              #identifierExpression
     |   interpolatedString                          #interpolatedStringExpression
+    |   nestedVariable                              #identifierExpression
     |   IDENTIFIER                                  #identifierExpression
     |   functionCall                                #functionCallExpression
     |   '(' expression ')'                          #parethesizedExpression
@@ -39,8 +39,8 @@ expression
     |   unaryOp expression                          #unaryExpression
     ;
 
-nestedVariable: '$'IDENTIFIER;
 interpolatedString: '$'STRING;
+nestedVariable: '$'IDENTIFIER;
 
 unaryOp
     : '-'
@@ -144,6 +144,7 @@ FUNCTIONDEC: 'fun' | 'func' | 'function';
 SCRIPTATTR: '?>>';
 scriptVersion: SCRIPTATTR VERSIONSTR;
 changeStyle: SCRIPTATTR 'style' IDENTIFIER;
+changeDefault: SCRIPTATTR 'default' IDENTIFIER;
 
 VERSIONSTR: INTEGER '.' INTEGER ('.' INTEGER ('.' INTEGER)?)?;
 

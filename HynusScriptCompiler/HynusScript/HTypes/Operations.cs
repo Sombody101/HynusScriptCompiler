@@ -1,10 +1,8 @@
 using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Headers;
 
 namespace HynusScriptCompiler.HynusScript.HTypes;
 
-public class Operations
+public static class Operations
 {
     private static readonly Dictionary<char, char> EscapeMappings = new()
     {

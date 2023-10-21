@@ -1,4 +1,4 @@
-![](./GitAssets/HynusWynus.svg)
+![](./GitAssets/HynusScript.png)
 
 # HynusScript (HScript) - HynusWynus Automation
 HScript was created to act the same way as a shell script or batch file. 

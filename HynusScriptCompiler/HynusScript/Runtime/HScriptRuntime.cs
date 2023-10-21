@@ -17,6 +17,8 @@ internal static class RuntimeMembers
 {
     public static void Initialize()
     {
+        DefaultValue = "";
+
         Variables = new();
         Functions = new();
         BuiltInFunctions = HTypes.BuiltInFunctions.GetBuiltInFunctions();
@@ -28,10 +30,14 @@ internal static class RuntimeMembers
         };
     }
 
+#pragma warning disable CS8618
     internal static Dictionary<string, HFunction> BuiltInFunctions { get; private set; }
     internal static Dictionary<string, object?> Variables { get; private set; }
     internal static Dictionary<string, object?> PresetVariables { get; private set; }
     internal static Dictionary<string, HFunction> Functions { get; private set; }
+#pragma warning restore CS8618
+
+    internal static object? DefaultValue { get; set; }
 
     public static void OverwriteBuiltInFunctions(Dictionary<string, HFunction> funcs)
         => BuiltInFunctions = funcs;
@@ -101,11 +107,12 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
                 break;
         }
 
-        foreach (var item in RuntimeMembers.BuiltInFunctions.Keys)
-        {
-            Console.WriteLine(item);
-        }
+        return null;
+    }
 
+    public override object? VisitChangeDefault([NotNull] HScriptParser.ChangeDefaultContext context)
+    {
+        RuntimeMembers.DefaultValue = Visit(context.IDENTIFIER());
         return null;
     }
 
@@ -140,7 +147,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         else if (RuntimeMembers.PresetVariables.ContainsKey(name))
             return RuntimeMembers.PresetVariables[name];
 
-        return "";
+        return RuntimeMembers.DefaultValue;
     }
 
     public override object? VisitConstant([NotNull] HScriptParser.ConstantContext context)
@@ -314,20 +321,6 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             _ => throw new HScriptUnknownOperationException($"Unknown unary operator '{op}'")
         };
     }
-
-    /* Failed to get double ops working */
-    //public override object VisitDoubleExpression([NotNull] HScriptParser.DoubleExpressionContext context)
-    //{
-    //    var value = Visit(context.expression());
-    //    var op = context.doubleOp().GetText();
-    //
-    //    return op switch
-    //    {
-    //        "++" => Operations.PlusPlus(value),
-    //        "--" => Operations.MinusMinus(value),
-    //        _ => throw new HScriptUnknownOperationException($"Unknown double operator '{op}'")
-    //    };
-    //}
 
     /* Method helpers */
 

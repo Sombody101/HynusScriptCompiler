@@ -61,5 +61,6 @@ Another option to be used is "enableLowerStyle". This will change the built in f
 # Script modifiers, denoted by '?>>' (Not required)
 ?>>0.0.0.0
 ?>>style camel
+?>>default "faggot"
 
 write "fucker"
