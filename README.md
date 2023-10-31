@@ -128,7 +128,7 @@ And this code will *still work*.
 In total, there are 5 different code styles built into HScript. PascalCase (by default), snake_case, kebab-case, camelCase, and for gits-n-shiggles, piglatin case. Yes. You can change all built in methods to be piglatin. This is what the same codeblock will look like with the piglatin style:
 
 ```bash
-?>> style camel # Changes format to piglatin
+?>> style piglatin # Changes format to piglatin
 itelinewray "This is the script version: {0}", sVersions
 ```
 

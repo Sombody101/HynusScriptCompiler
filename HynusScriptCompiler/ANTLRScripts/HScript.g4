@@ -1,24 +1,27 @@
 grammar HScript;
 
-program: scriptVersion? changeStyle? line* EOF;
+program: scriptConfiguration*? line* EOF;
 
-line: statement | ifBlock | whileBlock | changeDefault;
+line: (functionDefinition | functionCall | assignment | ifBlock | whileBlock | return | expression) ';'?;
 
-statement: (assignment | functionCall) ';'?;
+ifBlock: 'if' '('? expression ')'? opBlock 
+    ('else if' '('? expression ')'? elseIfBlock 
+    ('else if' '('? expression ')'? elseIfBlock)*?)? 
+    ('else' elseIfBlock)?;
 
-ifBlock: 'if' '('? expression ')'? block ('else' elseIfBlock)?;
+elseIfBlock: opBlock | ifBlock;
 
-elseIfBlock: block | ifBlock;
-
-whileBlock: WHILE expression block ('or' elseIfBlock)?;
+whileBlock: WHILE expression opBlock ('or' elseIfBlock)?;
 
 WHILE: 'while' | 'until';
 
-assignment: IDENTIFIER '=' expression;
+assignment: (arrAccess | localIdentifier | IDENTIFIER) '=' (expression | arrBlock);
 
-functionDefinition: FUNCTIONDEC IDENTIFIER '(' (expression (',' expression)*)? ')' block;
+functionDefinition: FUNCTIONDEC IDENTIFIER '()' block;
 
-functionCall: IDENTIFIER '('? (expression (',' expression)*)? ')'?;
+functionClosure: FUNCTIONDEC '()' block;
+
+functionCall: IDENTIFIER ('('? (expression (',' expression)*?)? ')'? | '()');
 
 tryCatch: 'try' block 'catch' ('(' exceptionInfo ')')? block;
 
@@ -26,10 +29,11 @@ exceptionInfo: IDENTIFIER IDENTIFIER;
 
 expression
     :   constant                                    #constantExpression
-    |   interpolatedString                          #interpolatedStringExpression
-    |   nestedVariable                              #identifierExpression
+    |   nestedVariable                              #nestedVariableExpression
     |   IDENTIFIER                                  #identifierExpression
+    |   arrAccess                                   #arrayAccessExpression
     |   functionCall                                #functionCallExpression
+    |   functionClosure                             #functionClosureExpression
     |   '(' expression ')'                          #parethesizedExpression
     |   expression '?' expression ':' expression    #conditionalExpression
     |   expression multOp expression                #multiplicativeExpression
@@ -37,10 +41,12 @@ expression
     |   expression comareOp expression              #comparisonExpression
     |   expression boolOp expression                #booleanExpression
     |   unaryOp expression                          #unaryExpression
+    |   block                                       #blockExpression
+    |   'hscript::' expression                      #hscriptCallExpression
+    |   'cscall::' expression                       #dynamicCSharpCallExpression
     ;
 
-interpolatedString: '$'STRING;
-nestedVariable: '$'IDENTIFIER;
+nestedVariable: '@'IDENTIFIER;
 
 unaryOp
     : '-'
@@ -85,31 +91,33 @@ comareOp
 
 boolOp: BOOL_OPERATOR;
 
-BOOL_OPERATOR
-    : AND 
-    | OR 
-    | XOR
-    ;
-
 constant
-    : UINTEGER ('U' | 'u')
+    : BOOL
+    | UINTEGER
     | INTEGER 
-    | FLOAT ('F' | 'f')
+    | FLOAT
     | HEX ('U' | 'u')?
     | BINARY ('U' | 'u')?
     | BYTE
+    | ISTRING
     | STRING
+    | ESCSTRING
     | CHAR 
-    | BOOL 
-    | NULL // Will be interperited the same as void in c#
+    | NULL
     ;
+
 
 BINARY: ('0b' | '0B') [0-1_]+;
 HEX: ('0x' | '0X') [a-fA-F0-9_]+;
 UINTEGER: INTEGER ('U' | 'u');
-FLOAT: INTEGER '.' INTEGER;
+FLOAT: INTEGER '.' INTEGER ('F' | 'f');
 INTEGER: [0-9_]+;
+
 STRING: '"' ( ESC_SEQ | ~('\\'|'"') )* '"';
+ISTRING: '$"' ( ESC_SEQ | ~('\\'|'"') )* '"';
+verbatimString: '```' ( ~'```' )* '```';
+ESCSTRING: '`' ( ESC_SEQ | ~('\\'|'`') )* '`';
+
 CHAR: '\'' . '\'';
 BYTE
     : '1'..'9' '0'..'9'
@@ -124,15 +132,22 @@ fragment U_HEX: [0-9a-fA-F];
 
 BOOL
     : 'true' 
-    | 'false' 
-    | 'True' // Compliant for Python users 
+    | 'false'
+    | ':'       // Shorthand 'true' 
+    | 'True'    // Compliant for Python users 
     | 'False'
     ;
 
+BOOL_OPERATOR
+    : AND 
+    | OR 
+    | XOR
+    ;
+
 NULL
-    : 'null' 
-    | 'nil' 
-    | 'None' // Compliant for Python users 
+    : 'null'    // Compliant with normal people
+    | 'nil'     // Compliant with Lua users
+    | 'None'    // Compliant for Python users 
     ;
 
 AND: '&&' | 'and';
@@ -142,15 +157,31 @@ XOR: '^' | 'xor';
 FUNCTIONDEC: 'fun' | 'func' | 'function';
 
 SCRIPTATTR: '?>>';
+VERSIONSTR: INTEGER '.' INTEGER ('.' INTEGER ('.' INTEGER)?)?;
 scriptVersion: SCRIPTATTR VERSIONSTR;
 changeStyle: SCRIPTATTR 'style' IDENTIFIER;
-changeDefault: SCRIPTATTR 'default' IDENTIFIER;
+enableDebug: SCRIPTATTR 'debug' expression;
+importScript: SCRIPTATTR 'import' IDENTIFIER;
 
-VERSIONSTR: INTEGER '.' INTEGER ('.' INTEGER ('.' INTEGER)?)?;
+scriptConfiguration
+    : scriptVersion     #scriptVersionConfig
+    | changeStyle       #codeStyleCongfig
+    | enableDebug       #enableDebugConfig
+    | importScript      #importScriptConfig
+    ;
 
-block: '{' line* '}' | line;
+arrBlock: '[' (expression (',' expression)*)? ']';
+arrAccess: IDENTIFIER '[' expression ']';
+block: '{' line* '}' | lineBlock;
+lineBlock: ('-' | '=')'>' line;
+opBlock: '{' line* '}' | line;
+return: 'return' expression;
 
-COMMENT: ('//' | '#') ~[\r\n]* -> skip;
-MLCOMMENT: (('###' .*? '###') | ('/*' .*? '*/')) -> skip;
+COMMENT: /*('//' | '#')*/ '#' ~[\r\n]* -> skip;
+MLCOMMENT: ('###' .*? '###') /*('/*' .*? '* /')*/ -> skip;
 WHITESPACE: [ \t\r\n\u000B\f\uFEFF]+ -> skip;
-IDENTIFIER: '@'?[a-zA-Z_][a-zA-Z0-9_]*;
+
+IDENTIFIER: ('_' | ':') | SCOPEIDENTIFIER | ([a-zA-Z_][a-zA-Z0-9_]* | [a-zA-Z]);
+
+SCOPEIDENTIFIER: '$'('#' | '@' | [0-9]+);
+localIdentifier: 'local' IDENTIFIER;

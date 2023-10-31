@@ -3,9 +3,6 @@
 My biggest goal while making this language was for ease of use among all program users. I want this language to be easier to pickup and learn
 regardless of if you started with C, or Python.
 
-Comments are started with either "// comment" or "# comment"
-Multiline comments can also be made with "/* comment */", or three '#' as both the opening and closing tags
-
 This is done to be compliant with Python and C-Family language users.
 
 The syntax of this language is also JavaScript based, with a small blend of Python and BashScript.
@@ -31,7 +28,7 @@ There are also some other operators custom to HScript.
 The ":==" and ":!=" operators. These operators will check if the input value types match.
 
 Example:
-    WriteLine("Types match: ", true :== false); // Output: "Types match: True"
+    WriteLine("Types match: ", true :== false); # Output: "Types match: True"
 
 Even if "true" and "false" do not equal each other, their types do. They're both boolean values, so the ":==" operator will return true. This is especially useful in a
 dynamic language, where the type of the variable cannot always be determined.
@@ -42,7 +39,7 @@ And in Python:
     isinstance(myBool, bool)
 
 But here, it has been simplified to:
-    myBool :== true // Or "false", you just need an instance of the type
+    myBool :== true # Or "false", you just need an instance of the type
 
 HScript still has a "GetType" function. So you can also use:
     GetType(myBool) == GetType(true)
@@ -54,13 +51,15 @@ An example would be the interpreter version:
 This line tells the interpreter that the version the script was designed for was v1.3.55.2. The interpreter will throw an error if the script version is newer than
 it, and will only throw a warning if the interpreter version is newer than the script.
 
-Another option to be used is "enableLowerStyle". This will change the built in function names from PascalCase to camelCase.
+Another option to be used is "camel". This will change the built in function names from PascalCase to camelCase.
 
 ###
 
 # Script modifiers, denoted by '?>>' (Not required)
-?>>0.0.0.0
+?>>1.0.0.0
 ?>>style camel
-?>>default "faggot"
+?>>debug 0x1
+default = "NOT_FOUND"
 
-write "fucker"
+something = "nothing"
+writeLine($"nothing, {something}")

@@ -1,7 +1,5 @@
 using HynusScriptCompiler.HynusScript.Runtime;
 using Spectre.Console;
-using System.Drawing;
-using System;
 
 namespace HynusScriptCompiler.HynusScript.HTypes;
 
@@ -9,22 +7,64 @@ internal class HFunction
 {
     private readonly object Function;
 
+    public string Name { get; set; }
+
     public HFunction(Func<object[], object?> func)
     {
+        Name = $"built-in".AsMemberName();
         Function = func;
     }
 
-    public HFunction(string hscript)
+    public HFunction(string name, HScriptParser.BlockContext hscript)
     {
+        Name = name;
         Function = hscript;
     }
 
-    public object? Invoke(object[] obs)
+    public HFunction(HScriptParser.BlockContext hscript)
     {
+        Name = $"special-user-defined".AsMemberName();
+        Function = hscript;
+    }
+
+    public object? Invoke(object[]? obs)
+    {
+        obs ??= Array.Empty<object>();
+
         if (Function is Func<object[], object?> func)
             return func(obs);
 
+        else if (Function is HScriptParser.BlockContext context)
+        {
+            Dictionary<string, object?> vars = new()
+            {
+                { "$@", obs.Select(ob => ob.ToString() ?? RVar.Default) },
+                { "$#", obs.Length }
+            };
+
+            for (int i = 0; i < obs.Length; i++)
+                vars.Add($"${i + 1}", obs[i]);
+
+            RuntimeMembers.CallStack.Push(new HFunctionCallContext(Name, vars));
+            var ret = HScriptRuntime.StaticAccess.Visit(context);
+            RuntimeMembers.CallStack.Pop();
+
+            return ret;
+        }
+
         return null;
+    }
+}
+
+internal class HFunctionCallContext
+{
+    public string ID { get; }
+    public Dictionary<string, object?> ScopedVariables { get; private set; }
+
+    public HFunctionCallContext(string id, Dictionary<string, object?> scopedVariables)
+    {
+        ID = id;
+        ScopedVariables = scopedVariables;
     }
 }
 
@@ -52,17 +92,46 @@ internal static class BuiltInFunctions
             { "WriteData", new(WriteData) },
 
             // Environment
-            { "GetType", new(GetType) },
-            { "SizeOf", new(SizeOf) },
             { "ListVariables", new(ListVariables) },
+            { "ListFunctions", new(List) },
+            { "GcClean", new(ExitScript) },
 
             // Keyword methods
+            { "typeof", new(TypeOf) },
+            { "sizeof", new(SizeOf) },
             { "delete", new(DeleteMember) },
             { "exit", new(ExitScript) },
         };
     }
 
-    /* Method Name Manupulation */
+    public static object? List(object[] obs)
+    {
+        foreach (var f in RuntimeMembers.Functions)
+            Console.WriteLine($"{f.Key} : {f.Value.Name}");
+        return null;
+    }
+
+    #region DebuggingFunctions
+
+    private static Dictionary<string, HFunction> DebuggingFunctions()
+    {
+        return new()
+        {
+            { "CallStack", new(GetCallStack) },
+        };
+    }
+
+    public static object? GetCallStack(object[] obs)
+    {
+        foreach (var call in RuntimeMembers.CallStack.Stack)
+            Console.WriteLine("+ " + call.ID);
+
+        return RVar.Default;
+    }
+
+    #endregion
+
+    #region MethodNameManipulation
 
     /// <summary>
     /// Gets all built in functions in camelCase
@@ -70,14 +139,10 @@ internal static class BuiltInFunctions
     /// <returns></returns>
     public static Dictionary<string, HFunction> GetBuiltInFunctionsAsCamel()
     {
-        var methods = GetBuiltInFunctions();
-
-        var toLower = methods.ToDictionary(
+        return GetBuiltInFunctions().ToDictionary(
             kvp => char.ToLower(kvp.Key[0]) + kvp.Key[1..],
             kvp => kvp.Value
         );
-
-        return toLower;
     }
 
     /// <summary>
@@ -91,10 +156,7 @@ internal static class BuiltInFunctions
         var convertedDictionary = new Dictionary<string, HFunction>();
 
         foreach (var kvp in methods)
-        {
-            var convertedKey = ConvertToSnakeCase(kvp.Key);
-            convertedDictionary[convertedKey] = kvp.Value;
-        }
+            convertedDictionary[ConvertToSnakeCase(kvp.Key)] = kvp.Value;
 
         return convertedDictionary;
     }
@@ -110,10 +172,7 @@ internal static class BuiltInFunctions
         var convertedDictionary = new Dictionary<string, HFunction>();
 
         foreach (var kvp in methods)
-        {
-            var convertedKey = ConvertToKebabCase(kvp.Key);
-            convertedDictionary[convertedKey] = kvp.Value;
-        }
+            convertedDictionary[ConvertToKebabCase(kvp.Key)] = kvp.Value;
 
         return convertedDictionary;
     }
@@ -128,32 +187,23 @@ internal static class BuiltInFunctions
         var pigLatin = new Dictionary<string, HFunction>();
 
         foreach (var kvp in methods)
-        {
-            var pigLatinName = ToPigLatin(kvp.Key);
-            pigLatin[pigLatinName] = kvp.Value;
-        }
+            pigLatin[ToPigLatin(kvp.Key)] = kvp.Value;
 
         return pigLatin;
     }
 
-    private static string ToPigLatin(string input)
+    public static Dictionary<string, HFunction> GetDebuggingFunctions()
     {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        input = input.ToLower();
-        string vowels = "aeiou";
-
-        if (vowels.Contains(input[0]))
-            return input + "way";
-        else
+        return HRuntime.Merge(new List<Dictionary<string, HFunction>>()
         {
-            int firstVowelIndex = input.IndexOfAny(vowels.ToCharArray());
-            return string.Concat(input.AsSpan(firstVowelIndex), input.AsSpan(0, firstVowelIndex), "ay");
-        }
+            RuntimeMembers.Functions,
+            DebuggingFunctions()
+        });
     }
 
-    /* User I/O */
+    #endregion
+
+    #region UserIO
 
     public static object? Input(object[] strs)
     {
@@ -169,7 +219,8 @@ internal static class BuiltInFunctions
             AnsiConsole.Markup(str, data);
         else
             AnsiConsole.Markup(str);
-        return null;
+
+        return RVar.Default;
     }
 
     public static object? MarkupLine(object[] strs)
@@ -180,7 +231,8 @@ internal static class BuiltInFunctions
             AnsiConsole.MarkupLine(str, data);
         else
             AnsiConsole.MarkupLine(str);
-        return null;
+
+        return RVar.Default;
     }
 
     public static object? Write(object[] strs)
@@ -191,7 +243,8 @@ internal static class BuiltInFunctions
             Console.Write(str, data);
         else
             Console.Write(str);
-        return null;
+
+        return RVar.Default;
     }
 
     public static object? WriteLine(object[] strs)
@@ -203,7 +256,7 @@ internal static class BuiltInFunctions
         else
             Console.WriteLine(str);
 
-        return null;
+        return RVar.Default;
     }
 
     /* Logging */
@@ -213,7 +266,7 @@ internal static class BuiltInFunctions
         (var str, _) = ResolveStrings(strs);
 
         Logging.Log(str);
-        return null;
+        return RVar.Default;
     }
 
     public static object? LogWarning(object[] strs)
@@ -221,7 +274,7 @@ internal static class BuiltInFunctions
         (var str, _) = ResolveStrings(strs);
 
         Logging.LogWarning(str);
-        return null;
+        return RVar.Default;
     }
 
     public static object? LogError(object[] strs)
@@ -229,7 +282,7 @@ internal static class BuiltInFunctions
         (var str, _) = ResolveStrings(strs);
 
         Logging.LogError(str);
-        return null;
+        return RVar.Default;
     }
 
     public static object? WriteTitle(object[] strs)
@@ -237,7 +290,7 @@ internal static class BuiltInFunctions
         (var str, _) = ResolveStrings(strs);
 
         Logging.WriteTitle(str);
-        return null;
+        return RVar.Default;
     }
 
     public static object? WriteData(object[] strs)
@@ -245,7 +298,7 @@ internal static class BuiltInFunctions
         (var str, var data) = ResolveStrings(strs);
 
         Logging.WriteData(str, data);
-        return null;
+        return RVar.Default;
     }
 
     /* HScript environment functions */
@@ -259,17 +312,17 @@ internal static class BuiltInFunctions
 
         Environment.Exit(0); // Exits even if the user typed a string
 
-        return null; // Useless
+        return RVar.Default;
     }
 
     public static object? GetType(object[] strs)
     {
         if (strs is null || strs.Length == 0)
-            return "null";
+            return RVar.Default;
 
         var obj = strs[0];
         if (obj is null)
-            return "null";
+            return RVar.Default;
 
         return obj.GetType().Name;
     }
@@ -290,7 +343,13 @@ internal static class BuiltInFunctions
         foreach (var variable in RuntimeMembers.Variables)
             Console.WriteLine(variable.Key);
 
-        return null;
+        return RVar.Default;
+    }
+
+    public static object? CollectGarbage()
+    {
+        GC.Collect();
+        return RVar.Default;
     }
 
     public static object? SizeOf(object[] obs)
@@ -299,7 +358,17 @@ internal static class BuiltInFunctions
         return Utils.SizeOf(str);
     }
 
-    /* Method helpers */
+    public static object? TypeOf(object[] obs)
+    {
+        if (obs is null || obs.Length is 0)
+            return RVar.Default;
+
+        return obs[0].GetTypeName();
+    }
+
+    #endregion
+
+    #region MethodHelpers
 
     private static string ConvertToSnakeCase(string input)
     {
@@ -316,10 +385,10 @@ internal static class BuiltInFunctions
         if (obs is null || obs.Length == 0 || obs[0] is null)
             return ("null", Array.Empty<string>());
 
-        var str = Operations.EscapeString(obs[0].ToString() ?? "null");
-        var data = obs[1..].Select(st => st is null ? "null" : Operations.EscapeString(st.ToString() ?? "null")).ToArray();
-
-        return (str, data);
+        return (
+            Operations.EscapeString(obs[0].ToString() ?? "null"),
+            obs[1..].Select(st => st is null ? "null" : Operations.EscapeString(st.ToString() ?? "null")).ToArray()
+        );
     }
 
     public static string[] ResolveObjects(object[] obs)
@@ -340,4 +409,23 @@ internal static class BuiltInFunctions
 
         return obs.Select(st => Operations.EscapeString(st.ToString() ?? "null")).ToArray();
     }
+
+    private static string ToPigLatin(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        input = input.ToLower();
+        string vowels = "aeiou";
+
+        if (vowels.Contains(input[0]))
+            return input + "way";
+        else
+        {
+            int firstVowelIndex = input.IndexOfAny(vowels.ToCharArray());
+            return string.Concat(input.AsSpan(firstVowelIndex), input.AsSpan(0, firstVowelIndex), "ay");
+        }
+    }
+
+    #endregion
 }

@@ -1,4 +1,5 @@
 using Antlr4.Runtime;
+using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
 using HynusScriptCompiler.HynusScript.Exceptions.RuntimeExceptions;
 using HynusScriptCompiler.HynusScript.Runtime;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ public enum HScriptResult
 {
     DeveloperErrorLol = -1,
     Successful,
+    ScriptError,
     ScriptNotFound,
     UnsuportedScriptVersion,
     LexerError,
@@ -55,7 +57,7 @@ internal class HScriptReader : HScriptBaseVisitor<int>
 
         if (Config.ShowLogs)
         {
-            Logging.Write("Beginning tokenization");
+            Logging.WriteLine("Beginning tokenization");
             sw = Stopwatch.StartNew();
         }
 
@@ -72,30 +74,38 @@ internal class HScriptReader : HScriptBaseVisitor<int>
 
         if (Config.ShowLogs)
         {
-            Logging.Write($" | Took {sw.ElapsedMilliseconds}ms\r\n");
+            Logging.WriteLine($" | Took {sw.ElapsedMilliseconds}ms\r\n");
             sw.Restart();
-            Logging.Write("Beginning token parse");
+            Logging.WriteLine("Beginning token parse");
         }
 
         HScriptParser parser = new(tokens);
         parser.RemoveErrorListeners();
         var parserListener = new HScriptParserErrorListener();
         parser.AddErrorListener(parserListener);
+        var context = parser.program();
 
         if (parserListener.ErrorOccured)
             return HScriptResult.ParserError;
 
-        var context = parser.program();
         var visitor = new HScriptRuntime();
 
         if (Config.ShowLogs)
         {
             sw.Stop();
-            Logging.Write($"  | Took {sw.ElapsedMilliseconds}ms\r\n");
+            Logging.WriteLine($" | Took {sw.ElapsedMilliseconds}ms\r\n");
             Logging.Log("Running script");
         }
 
-        visitor.Visit(context);
+        try
+        {
+            visitor.Visit(context);
+        }
+        catch (HException e)
+        {
+            HRuntime.Error(e);
+            return HScriptResult.ScriptError;
+        }
 
         return HScriptResult.Successful;
     }

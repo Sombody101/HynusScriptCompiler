@@ -1,8 +1,10 @@
 using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
+using HynusScriptCompiler.HynusScript.Runtime;
+using System.Text.RegularExpressions;
 
 namespace HynusScriptCompiler.HynusScript.HTypes;
 
-public static class Operations
+public static partial class Operations
 {
     private static readonly Dictionary<char, char> EscapeMappings = new()
     {
@@ -50,6 +52,17 @@ public static class Operations
 
     public static string GetTypeName(object? obj)
         => obj is null ? "null" : obj.GetType().Name;
+
+    public static string InterpolateString(string str)
+    {
+        return InterpolatedStringRegex().Replace(str,
+            match => RuntimeMembers.LocateVariable(match.Groups[1].Value, out var variable) != -1
+                ? $"{variable}"
+                : $"{RVar.Default}"
+        );
+    }
+
+    #region AdditiveOperations
 
     public static object Add(object? left, object? right)
     {
@@ -120,7 +133,9 @@ public static class Operations
         throw new HScriptInvalidOperationException($"Cannot subtract values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
     }
 
-    /* Multiplicative Operators */
+    #endregion
+
+    #region MultiplicativeOperations
 
     public static object Multiply(object? left, object? right)
     {
@@ -200,7 +215,42 @@ public static class Operations
         throw new HScriptInvalidOperationException($"Cannot modulus values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
     }
 
-    /* Comparison Operators */
+    public static object Power(object? left, object? right)
+    {
+        if (left is int lInt)
+        {
+            if (right is int rInt)
+                return Math.Pow(lInt, rInt);
+            if (right is float rFloat)
+                return Math.Pow(lInt, rFloat);
+            if (right is uint rUint)
+                return Math.Pow(lInt, rUint);
+        }
+        else if (left is float lFloat)
+        {
+            if (right is int rInt)
+                return Math.Pow(lFloat, rInt);
+            if (right is float rFloat)
+                return Math.Pow(lFloat, rFloat);
+            if (right is uint rUint)
+                return Math.Pow(lFloat, rUint);
+        }
+        else if (left is uint lUint)
+        {
+            if (right is int rInt)
+                return Math.Pow(lUint, rInt);
+            if (right is float rFloat)
+                return Math.Pow(lUint, rFloat);
+            if (right is uint rUint)
+                return Math.Pow(lUint, rUint);
+        }
+
+        throw new HScriptInvalidOperationException($"Cannot power values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
+    }
+
+    #endregion
+
+    #region ComparisonOperators
 
     public static object CompareType(object? left, object? right)
     {
@@ -281,8 +331,133 @@ public static class Operations
         throw new HScriptInvalidOperationException($"Cannot compare values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
     }
 
+    #endregion
 
-    /* Unary Operations */
+    #region BooleanOperators
+
+    public static bool Evaluate(object? obj)
+    {
+        if (obj is bool b)
+            return b;
+        else if (obj is int i)
+            return i == 1;
+        else if (obj is uint ui)
+            return ui == 1;
+        else
+            throw new HScriptInvalidOperationException("Cannot evaluate non-boolean value '" + GetTypeName(obj) + '\'');
+    }
+
+    public static bool BoolAnd(object? left, object? right)
+    {
+        if (left is bool lb && right is bool rb)
+            return lb && rb;
+
+        if (left is int lInt)
+        {
+            if (right is int rInt)
+                return (lInt == 1) && (rInt == 1);
+            if (right is float rFloat)
+                return (lInt == 1) && (rFloat == 1);
+            if (right is uint rUint)
+                return (lInt == 1) && (rUint == 1);
+        }
+        else if (left is float lFloat)
+        {
+            if (right is int rInt)
+                return (lFloat == 1) && (rInt == 1);
+            if (right is float rFloat)
+                return (lFloat == 1) && (rFloat == 1);
+            if (right is uint rUint)
+                return (lFloat == 1) && (rUint == 1);
+        }
+        else if (left is uint lUint)
+        {
+            if (right is int rInt)
+                return (lUint == 1) && (rInt == 1);
+            if (right is float rFloat)
+                return (lUint == 1) && (rFloat == 1);
+            if (right is uint rUint)
+                return (lUint == 1) && (rUint == 1);
+        }
+
+        throw new HScriptInvalidOperationException($"Cannot perform an and operation on values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
+    }
+
+    public static bool BoolOr(object? left, object? right)
+    {
+        if (left is bool lb && right is bool rb)
+            return lb || rb;
+
+        if (left is int lInt)
+        {
+            if (right is int rInt)
+                return (lInt == 1) || (rInt == 1);
+            if (right is float rFloat)
+                return (lInt == 1) || (rFloat == 1);
+            if (right is uint rUint)
+                return (lInt == 1) || (rUint == 1);
+        }
+        else if (left is float lFloat)
+        {
+            if (right is int rInt)
+                return (lFloat == 1) || (rInt == 1);
+            if (right is float rFloat)
+                return (lFloat == 1) || (rFloat == 1);
+            if (right is uint rUint)
+                return (lFloat == 1) || (rUint == 1);
+        }
+        else if (left is uint lUint)
+        {
+            if (right is int rInt)
+                return (lUint == 1) || (rInt == 1);
+            if (right is float rFloat)
+                return (lUint == 1) || (rFloat == 1);
+            if (right is uint rUint)
+                return (lUint == 1) || (rUint == 1);
+        }
+
+        throw new HScriptInvalidOperationException($"Cannot perform an or operation on values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
+    }
+
+    public static object BoolXor(object? left, object? right)
+    {
+        if (left is bool lb && right is bool rb)
+            return lb ^ rb;
+
+        if (left is int lInt)
+        {
+            if (right is int rInt)
+                return lInt ^ rInt;
+            if (right is float rFloat)
+                return lInt ^ (long)rFloat;
+            if (right is uint rUint)
+                return lInt ^ rUint;
+        }
+        else if (left is float lFloat)
+        {
+            if (right is int rInt)
+                return (long)lFloat ^ rInt;
+            if (right is float rFloat)
+                return (long)lFloat ^ (long)rFloat;
+            if (right is uint rUint)
+                return (long)lFloat ^ rUint;
+        }
+        else if (left is uint lUint)
+        {
+            if (right is int rInt)
+                return lUint ^ rInt;
+            if (right is float rFloat)
+                return lUint ^ (long)rFloat;
+            if (right is uint rUint)
+                return lUint ^ rUint;
+        }
+
+        throw new HScriptInvalidOperationException($"Cannot perform an xor operation on values of type '{GetTypeName(left)}' and '{GetTypeName(right)}'");
+    }
+
+    #endregion
+
+    #region UnaryOperators
 
     public static object LogicNot(object? value)
     {
@@ -328,7 +503,9 @@ public static class Operations
         throw new HScriptInvalidOperationException($"Cannot perform a bitwise minus operation on an object with the type '{GetTypeName(value)}'");
     }
 
-    /* Double Operation */
+    #endregion
+
+    #region DoubleOperation
 
     public static object PlusPlus(object? value)
     {
@@ -363,4 +540,9 @@ public static class Operations
 
         throw new HScriptInvalidOperationException($"Cannot perform a minus minus operation on an object with the type '{GetTypeName(value)}'");
     }
+
+    #endregion
+
+    [GeneratedRegex("\\{([^{}]+)\\}")]
+    private static partial Regex InterpolatedStringRegex();
 }

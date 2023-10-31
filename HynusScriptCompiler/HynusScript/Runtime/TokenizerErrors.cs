@@ -5,7 +5,7 @@ namespace HynusScriptCompiler.HynusScript.Runtime;
 
 public class HScriptLexerErrorListener : IAntlrErrorListener<int>
 {
-    public bool ErrorOccured = false;
+    public bool ErrorOccured { get; set; } = false;
 
     public void SyntaxError(TextWriter output, IRecognizer recognizer,
         int offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
@@ -27,7 +27,7 @@ public class HScriptLexerErrorListener : IAntlrErrorListener<int>
 }
 public class HScriptParserErrorListener : BaseErrorListener
 {
-    public bool ErrorOccured = false;
+    public bool ErrorOccured { get; set; } = false;
 
     public override void SyntaxError(TextWriter output, IRecognizer recognizer,
         IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)

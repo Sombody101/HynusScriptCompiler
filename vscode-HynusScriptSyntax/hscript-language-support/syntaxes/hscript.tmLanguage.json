@@ -8,36 +8,59 @@
         },
         {
             "name": "keyword.operator",
-            "match": "\\+|-|\\*|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
+            "match": "\\+|-|\\*|\\!|\\~|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
+        },
+        {
+            "name": "constant.string",
+            "match": "`.*?`"
         },
         {
             "name": "keyword.control",
-            "match": "\\b(if|else|while|until|or|try|catch|fun|func|function)\\b"
+            "match": "\\b(if|else|while|until|or|try|catch|fun|func|function|return|and|or|xor|cscall::|hscript::)\\b"
         },
         {
             "name": "keyword.control.hscript",
             "match": "\\b(exit)\\b"
         },
         {
-            "name": "comment.line",
-            "begin": "//",
-            "end": "$"
+            "name": "support.function.single-line",
+            "begin": "\\b(fun|func|function)\\s+\\w+\\s*\\(",
+            "end": "\\)\\s*(?=[-=]\\>)",
+            "patterns": [
+                {
+                    "name": "entity.name.function",
+                    "match": "\\b\\w+\\b"
+                }
+            ]
         },
         {
-            "name": "comment.line2",
-            "begin": "#",
-            "end": "$"
+            "name": "support.function",
+            "begin": "\\b(fun|func|function)\\s+\\w+\\s*\\(",
+            "end": "\\)",
+            "patterns": [
+                {
+                    "name": "entity.name.function",
+                    "match": "\\b\\w+\\b"
+                }
+            ]
         },
         {
             "name": "comment.block",
-            "begin": "/*",
-            "end": "*/"
+            "begin": "###",
+            "end": "###",
+            "patterns": [
+                {
+                    "name": "comment.block.content",
+                    "begin": "^###",
+                    "end": "###$"
+                }
+            ]
         },
         {
-            "name": "comment.block2",
-            "begin": "###",
-            "end": "###"
-        },        
+            "name": "comment.line",
+            "begin": "#",
+            "end": "$"
+        },
         {
             "name": "constant.numeric.decimal",
             "match": "\\b[0-9]+\\b"
@@ -55,12 +78,27 @@
             "match": "\".*?\""
         },
         {
+            "name": "constant.interpolated-string",
+            "begin": "\\$\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "variable",
+                    "match": "\\{\\w+\\}"
+                },
+                {
+                    "name": "string",
+                    "match": "[^\\{\\}]+"
+                }
+            ]
+        },
+        {
             "name": "constant.character",
             "match": "'.'"
         },
         {
             "name": "constant.boolean",
-            "match": "\\b(true|false|True|False)\\b"
+            "match": "\\b(true|false|:|True|False)\\b"
         },
         {
             "name": "constant.null",
