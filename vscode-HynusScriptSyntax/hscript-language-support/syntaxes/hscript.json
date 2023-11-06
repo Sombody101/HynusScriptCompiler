@@ -1,0 +1,86 @@
+{
+    "name": "HScript",
+    "scopeName": "source.hscript",
+    "patterns": [
+        {
+            "name": "keyword.script-config",
+            "match": "\\?>>.*$"
+        },
+        {
+            "name": "keyword.operator",
+            "match": "\\+|-|\\*|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
+        },
+        {
+            "name": "keyword.control",
+            "match": "\\b(if|else|while|until|or|try|catch|fun|func|function)\\b"
+        },
+        {
+            "name": "keyword.control.hscript",
+            "match": "\\b(exit)\\b"
+        },
+        {
+            "name": "comment.line",
+            "begin": "//",
+            "end": "$"
+        },
+        {
+            "name": "comment.line2",
+            "begin": "#",
+            "end": "$"
+        },
+        {
+            "name": "comment.block",
+            "begin": "/*",
+            "end": "*/"
+        },
+        {
+            "name": "comment.block2",
+            "begin": "###",
+            "end": "###"
+        },        
+        {
+            "name": "constant.numeric.decimal",
+            "match": "\\b[0-9]+\\b"
+        },
+        {
+            "name": "constant.numeric.hexadecimal",
+            "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+            "name": "constant.numeric.binary",
+            "match": "\\b0[bB][01]+\\b"
+        },
+        {
+            "name": "constant.string",
+            "match": "\".*?\""
+        },
+        {
+            "name": "constant.character",
+            "match": "'.'"
+        },
+        {
+            "name": "constant.boolean",
+            "match": "\\b(true|false|True|False)\\b"
+        },
+        {
+            "name": "constant.null",
+            "match": "\\b(null|nil|None)\\b"
+        },
+        {
+            "name": "punctuation.semicolon",
+            "match": ";"
+        },
+        {
+            "name": "punctuation.braces",
+            "match": "{|}"
+        },
+        {
+            "name": "punctuation.parentheses",
+            "match": "\\(|\\)"
+        },
+        {
+            "name": "punctuation.comma",
+            "match": ","
+        }
+    ]
+}

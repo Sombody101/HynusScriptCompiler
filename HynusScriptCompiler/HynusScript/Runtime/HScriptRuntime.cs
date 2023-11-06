@@ -19,7 +19,11 @@ internal static class RuntimeMembers
 
     public static void Initialize()
     {
-        Functions = BuiltInFunctions.GetBuiltInFunctions();
+        // HScript is going in a new, real language like direction
+        // All functions will be defined *in* the language itself
+        // Debugging methods could go to another direction
+
+        Functions = new(); //BuiltInFunctions.GetBuiltInFunctions();
         CallStack = new();
         Variables = new();
         PresetVariables = new()
@@ -61,16 +65,14 @@ internal static class RuntimeMembers
     public static int LocateVariable(string var, out object? variable)
     {
         // Get scoped variable
-        if (var.StartsWith('$'))
+        if (CurrentFunc is not null && CurrentFunc.ScopedVariables.TryGetValue(var, out var fVar))
         {
-            if (CurrentFunc.ScopedVariables.TryGetValue(var, out var fVar))
-            {
-                variable = fVar;
-                return 3;
-            }
+            variable = fVar;
+            return 3;
         }
+
         // Get regular variable
-        else if (Variables.TryGetValue(var, out var v))
+        if (Variables.TryGetValue(var, out var v))
         {
             variable = v;
             return 1;
@@ -96,13 +98,10 @@ internal static class RuntimeMembers
                 return 1;
             }
         }
-        else if (Variables.TryGetValue(name, out var vf))
+        else if (Variables.TryGetValue(name, out var vf) && vf is HFunction vF)
         {
-            if (vf is HFunction vF)
-            {
-                func = vF;
-                return 2;
-            }
+            func = vF;
+            return 2;
         }
 
         func = null;
@@ -133,7 +132,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
         if (versionComponents.Length < 2 || versionComponents.Length > 4)
         {
-            Logging.LogError("Invalid version format. It should have 2, 3, or 4 segments. (Example: '?>> 4.0.2')");
+            Logging.LogError("Invalid version format. It should have 2, 3, or 4 segments. (Example: '?>> [yellow]4.0.2[/]')");
             Environment.Exit((int)HScriptResult.InvalidScriptVersion);
         }
 
@@ -391,8 +390,25 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
     public override object? VisitFunctionDefinition([NotNull] HScriptParser.FunctionDefinitionContext context)
     {
+        Dictionary<string, object?> args = new();
+        if (context.functionParameter() is { } fParams)
+            foreach (var param in fParams)
+                if (param.IDENTIFIER() is { } iden)
+                    args.Add(iden.GetText(), new HUndefined());
+                else if (param.functionPresetParameter() is { } fPParam)
+                    args.Add(fPParam.IDENTIFIER().GetText(), Visit(fPParam.constant()));
+                else throw new Exception("IDEK what happened my guy");
+
+        if (args.Count > 0)
+        {
+            HashSet<string> fIdens = new();
+            foreach (var param in args.Select(arg => arg.Key))
+                if (!fIdens.Add(param))
+                    throw new Exception("Function definition cannot contain multiple parameters with the same identifier name");
+        }
+
         var funcName = context.IDENTIFIER().GetText();
-        var func = new HFunction(funcName, context.block());
+        var func = new HFunction(funcName, args, context.block());
         RuntimeMembers.Functions[funcName] = func;
 
         return func;
@@ -406,7 +422,9 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
     public override object? VisitFunctionCall([NotNull] HScriptParser.FunctionCallContext context)
     {
         var name = context.IDENTIFIER().GetText();
-        var args = context.expression().Select(Visit).ToArray() ?? Array.Empty<object?>();
+
+        object?[]? args;
+        args = context.expression().Select(Visit).ToArray() ?? Array.Empty<object?>();
 
         if (RuntimeMembers.LocateFunction(name, out var func) != -1)
             return func!.Invoke(args!);
@@ -498,8 +516,8 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
         if (cond(Visit(context.expression())))
             while (cond(Visit(context.expression())))
-                Visit(context.opBlock());
-        else if (context.elseIfBlock() is { } block)
+                Visit(context.opBlock()[0]);
+        else if (context.opBlock().Length > 1 && context.opBlock()[1] is { } block)
             Visit(block);
 
         return null;
@@ -514,6 +532,34 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             throw new HScriptInvalidInputParameterException(typeof(string), cscode);
 
         return DynamicCSharp.Run(code).GetAwaiter().GetResult();
+    }
+
+    public override object? VisitHscriptCallExpression([NotNull] HScriptParser.HscriptCallExpressionContext context)
+    {
+        var special = context.specialHScript();
+
+        string typeName = "";
+        if (special.IDENTIFIER() is { } hid)
+            typeName = hid.GetText();
+
+        if (!typeName.Contains('.'))
+            typeName = "System." + typeName;
+        Type? type = Type.GetType(typeName);
+
+        var func = special.specialFunctionCall();
+        string funcID = "";
+        if (func.IDENTIFIER() is { } fhid)
+            funcID = fhid.GetText();
+
+        var ret = DynamicCSharp.InvokeMethodFromName(funcID.ResolveAssemblyPaths(), func.expression().Select(Visit).ToArray());
+
+        if (ret as Type == typeof(void))
+            throw new HScriptUnknownFunctionReferenceException(funcID.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries)[^1], context);
+
+        if (type is null || ret is null)
+            return null;
+
+        return Convert.ChangeType(ret, type);
     }
 
     /* Operations */
@@ -602,7 +648,14 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             if (varName.StartsWith('@'))
             {
                 if (RuntimeMembers.LocateVariable(varName[1..], out var variable) != -1)
-                    return ResolveNestedVariables(variable);
+                {
+                    var ret = ResolveNestedVariables(variable);
+
+                    if (ret is HUndefined)
+                        return variable;
+
+                    return ret;
+                }
 
                 return RVar.Default;
             }
@@ -611,7 +664,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
                 if (RuntimeMembers.LocateVariable(varName, out var variable) != -1)
                     return variable;
 
-                return RVar.Default;
+                return new HUndefined();
             }
 
         return value;

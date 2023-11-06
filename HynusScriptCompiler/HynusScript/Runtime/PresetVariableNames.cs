@@ -7,17 +7,19 @@ internal static class RVar
         get => RuntimeMembers.PresetVariables[n_IVersion];
         set => RuntimeMembers.PresetVariables[n_IVersion] = value;
     }
+
     public static object? SVersion
     {
         get => RuntimeMembers.PresetVariables[n_SVersion];
         set => RuntimeMembers.PresetVariables[n_SVersion] = value;
     }
+
     public static object? WinVersion
     {
         get => RuntimeMembers.PresetVariables[n_WinVersion];
         set => RuntimeMembers.PresetVariables[n_WinVersion] = value;
-
     }
+
     public static object? Default
     {
         get => RuntimeMembers.PresetVariables[n_Default];

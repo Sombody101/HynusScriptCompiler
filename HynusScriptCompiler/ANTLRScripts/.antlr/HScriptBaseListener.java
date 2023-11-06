@@ -40,6 +40,18 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAssignment(HScriptParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAssignment(HScriptParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterIfBlock(HScriptParser.IfBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -76,49 +88,25 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAssignment(HScriptParser.AssignmentContext ctx) { }
+	@Override public void enterForBlock(HScriptParser.ForBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAssignment(HScriptParser.AssignmentContext ctx) { }
+	@Override public void exitForBlock(HScriptParser.ForBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFunctionDefinition(HScriptParser.FunctionDefinitionContext ctx) { }
+	@Override public void enterForeachBlock(HScriptParser.ForeachBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFunctionDefinition(HScriptParser.FunctionDefinitionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctionClosure(HScriptParser.FunctionClosureContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctionClosure(HScriptParser.FunctionClosureContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctionCall(HScriptParser.FunctionCallContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctionCall(HScriptParser.FunctionCallContext ctx) { }
+	@Override public void exitForeachBlock(HScriptParser.ForeachBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -143,6 +131,66 @@ public class HScriptBaseListener implements HScriptListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitExceptionInfo(HScriptParser.ExceptionInfoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionCall(HScriptParser.FunctionCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionCall(HScriptParser.FunctionCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionClosure(HScriptParser.FunctionClosureContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionClosure(HScriptParser.FunctionClosureContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionDefinition(HScriptParser.FunctionDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionDefinition(HScriptParser.FunctionDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionParameter(HScriptParser.FunctionParameterContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionParameter(HScriptParser.FunctionParameterContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionPresetParameter(HScriptParser.FunctionPresetParameterContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionPresetParameter(HScriptParser.FunctionPresetParameterContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -256,6 +304,18 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterHscriptCallExpression(HScriptParser.HscriptCallExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHscriptCallExpression(HScriptParser.HscriptCallExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArrayAccessExpression(HScriptParser.ArrayAccessExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -275,6 +335,18 @@ public class HScriptBaseListener implements HScriptListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitParethesizedExpression(HScriptParser.ParethesizedExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlockExpression(HScriptParser.BlockExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlockExpression(HScriptParser.BlockExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -316,30 +388,6 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNestedVariable(HScriptParser.NestedVariableContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNestedVariable(HScriptParser.NestedVariableContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterUnaryOp(HScriptParser.UnaryOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitUnaryOp(HScriptParser.UnaryOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDoubleStatement(HScriptParser.DoubleStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -352,13 +400,13 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDoubleOp(HScriptParser.DoubleOpContext ctx) { }
+	@Override public void enterAddOp(HScriptParser.AddOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDoubleOp(HScriptParser.DoubleOpContext ctx) { }
+	@Override public void exitAddOp(HScriptParser.AddOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -376,13 +424,25 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAddOp(HScriptParser.AddOpContext ctx) { }
+	@Override public void enterUnaryOp(HScriptParser.UnaryOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAddOp(HScriptParser.AddOpContext ctx) { }
+	@Override public void exitUnaryOp(HScriptParser.UnaryOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDoubleOp(HScriptParser.DoubleOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDoubleOp(HScriptParser.DoubleOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -424,18 +484,6 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIString(HScriptParser.IStringContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIString(HScriptParser.IStringContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVerbatimString(HScriptParser.VerbatimStringContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -443,54 +491,6 @@ public class HScriptBaseListener implements HScriptListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVerbatimString(HScriptParser.VerbatimStringContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterScriptVersion(HScriptParser.ScriptVersionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitScriptVersion(HScriptParser.ScriptVersionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterChangeStyle(HScriptParser.ChangeStyleContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitChangeStyle(HScriptParser.ChangeStyleContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterEnableDebug(HScriptParser.EnableDebugContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitEnableDebug(HScriptParser.EnableDebugContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterImportScript(HScriptParser.ImportScriptContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitImportScript(HScriptParser.ImportScriptContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -544,6 +544,54 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterScriptVersion(HScriptParser.ScriptVersionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitScriptVersion(HScriptParser.ScriptVersionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterChangeStyle(HScriptParser.ChangeStyleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitChangeStyle(HScriptParser.ChangeStyleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterEnableDebug(HScriptParser.EnableDebugContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEnableDebug(HScriptParser.EnableDebugContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterImportScript(HScriptParser.ImportScriptContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitImportScript(HScriptParser.ImportScriptContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArrBlock(HScriptParser.ArrBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -592,6 +640,18 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterReturn(HScriptParser.ReturnContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReturn(HScriptParser.ReturnContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOpBlock(HScriptParser.OpBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -604,13 +664,49 @@ public class HScriptBaseListener implements HScriptListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterReturn(HScriptParser.ReturnContext ctx) { }
+	@Override public void enterNestedVariable(HScriptParser.NestedVariableContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitReturn(HScriptParser.ReturnContext ctx) { }
+	@Override public void exitNestedVariable(HScriptParser.NestedVariableContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLocalIdentifier(HScriptParser.LocalIdentifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLocalIdentifier(HScriptParser.LocalIdentifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSpecialHScript(HScriptParser.SpecialHScriptContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSpecialHScript(HScriptParser.SpecialHScriptContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSpecialFunctionCall(HScriptParser.SpecialFunctionCallContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSpecialFunctionCall(HScriptParser.SpecialFunctionCallContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

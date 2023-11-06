@@ -1,0 +1,33 @@
+###
+#   Console manipulation
+###
+
+# fun console.write       -> hscript::void::System.Console.Write        $1
+# fun console.writeLine   -> hscript::void::System.Console.WriteLine    $1
+fun console.beep        -> hscript::void::System.Console.Beep       $1 
+
+###
+#   Numberic conversions
+###
+
+fun sbyte   -> hscript::SByte::System.Convert.ToSByte       $1
+fun short   -> hscript::Int16::System.Convert.ToInt16       $1
+fun int     -> hscript::Int32::System.Convert.ToInt32       $1
+fun long    -> hscript::Int64::System.Convert.ToInt64       $1
+
+fun byte    -> hscript::Byte::System.Convert.ToByte         $1
+fun ushort  -> hscript::UInt16::System.Convert.ToUInt16     $1
+fun uint    -> hscript::UInt32::System.Convert.ToUInt32     $1
+fun ulong   -> hscript::UInt64::System.Convert.ToUInt64     $1
+
+###
+#   String conversion
+###
+
+fun string  -> hscript::String::System.Convert.ToString     $1
+
+###
+#   Threading
+###
+
+fun delay   -> hscript::void::System.Threadding.Tasks.Delay

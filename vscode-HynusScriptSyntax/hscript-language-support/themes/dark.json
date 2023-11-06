@@ -1,0 +1,104 @@
+{
+    "name": "Complete Dark",
+    "uuid": "2D8C8EA0-678D-11EE-9CE6-DF93CB1455DA",
+    "tokenColors": [
+        {
+            "scope": "emphasis",
+            "settings": {
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "scope": "strong",
+            "settings": {
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "header",
+            "settings": {
+                "foreground": "#000080"
+            }
+        },
+        {
+            "name": "Generic comment + line/block defaults",
+            "scope": "comment, comment.line, comment.line2, comment.block, comment.block2",
+            "settings": {
+                "foreground": "#0987cb",
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "scope": "keyword.script-config",
+            "settings": {
+                "foreground": "#ebab34"
+            }
+        },
+        {
+            "scope": "keyword.script-config-key",
+            "settings": {
+                "foreground": "#dceb34"
+            }
+        },
+        {
+            "scope": "keyword.control.hscript",
+            "settings": {
+                "foreground": "#3489eb"
+            }
+        },
+        {
+            "scope": "constant.numeric.decimal",
+            "settings": {
+                "foreground": "#ebc034"
+            }
+        },
+        {
+            "scope": "constant.numeric.hexadecimal",
+            "settings": {
+                "foreground": "#ebab34"
+            }
+        },
+        {
+            "scope": "constant.numeric.binary",
+            "settings": {
+                "foreground": "#9feb34"
+            }
+        },
+        {
+            "scope": "constant.string",
+            "settings": {
+                "foreground": "#eb9c34"
+            }
+        },
+        {
+            "scope": "constant.character",
+            "settings": {
+                "foreground": "#eb9c34"
+            }
+        },
+        {
+            "scope": "constant.boolean",
+            "settings": {
+                "foreground": "#3474eb"
+            }
+        },
+        {
+            "scope": "constant.null",
+            "settings": {
+                "foreground": "#3474eb"
+            }
+        },
+        {
+            "scope": "keyword.operator",
+            "settings": {
+                "foreground": "#ffffff"
+            }
+        },
+        {
+            "scope": "keyword.control",
+            "settings": {
+                "foreground": "#9c34eb"
+            }
+        }
+    ]
+}

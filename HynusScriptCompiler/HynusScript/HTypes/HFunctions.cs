@@ -3,28 +3,38 @@ using Spectre.Console;
 
 namespace HynusScriptCompiler.HynusScript.HTypes;
 
+/// <summary>
+/// A struct that is intended to be a null type, and is used when a variable is uninitialized (Because 'null' is already used as it's own type)
+/// </summary>
+internal struct HUndefined { }
+
 internal class HFunction
 {
     private readonly object Function;
 
+
     public string Name { get; set; }
+    public Dictionary<string, object?> Parameters { get; set; }
 
     public HFunction(Func<object[], object?> func)
     {
         Name = $"built-in".AsMemberName();
         Function = func;
+        Parameters = new(0);
     }
 
-    public HFunction(string name, HScriptParser.BlockContext hscript)
+    public HFunction(string name, Dictionary<string, object?> param, HScriptParser.BlockContext hscript)
     {
         Name = name;
         Function = hscript;
+        Parameters = param;
     }
 
     public HFunction(HScriptParser.BlockContext hscript)
     {
-        Name = $"special-user-defined".AsMemberName();
+        Name = $"user-defined-closure".AsMemberName();
         Function = hscript;
+        Parameters = new(0);
     }
 
     public object? Invoke(object[]? obs)
@@ -36,14 +46,16 @@ internal class HFunction
 
         else if (Function is HScriptParser.BlockContext context)
         {
-            Dictionary<string, object?> vars = new()
-            {
-                { "$@", obs.Select(ob => ob.ToString() ?? RVar.Default) },
-                { "$#", obs.Length }
-            };
+            //Dictionary<string, object?> vars = new()
+            //{
+            //    { "$@", obs.Select(ob => ob.ToString() ?? RVar.Default) },
+            //    { "$#", obs.Length }
+            //};
+            //
+            //for (int i = 0; i < obs.Length; i++)
+            //    vars.Add($"${i + 1}", obs[i]);
 
-            for (int i = 0; i < obs.Length; i++)
-                vars.Add($"${i + 1}", obs[i]);
+            Dictionary<string, object?> vars = MapParameters(Parameters, obs);
 
             RuntimeMembers.CallStack.Push(new HFunctionCallContext(Name, vars));
             var ret = HScriptRuntime.StaticAccess.Visit(context);
@@ -54,6 +66,30 @@ internal class HFunction
 
         return null;
     }
+
+    private static Dictionary<string, object?> MapParameters(Dictionary<string, object?> fromDef, object[] fromCall)
+    {
+        Dictionary<string, object?> ctx = new();
+
+        for (int i = 0; i < fromDef.Count; i++)
+        {
+            var parameter = fromDef.ElementAt(i);
+            object? value = i < fromCall.Length ? fromCall[i] : new HUndefined();
+
+            if (value is not HUndefined)
+                ctx.Add(parameter.Key, value);
+            else
+            {
+                if (parameter.Value is not HUndefined)
+                    ctx.Add(parameter.Key, parameter.Value);
+                else
+                    ctx.Add(parameter.Key, new HUndefined());
+            }
+        }
+
+        return ctx;
+    }
+
 }
 
 internal class HFunctionCallContext

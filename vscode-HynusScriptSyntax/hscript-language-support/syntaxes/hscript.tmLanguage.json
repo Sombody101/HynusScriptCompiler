@@ -11,12 +11,25 @@
             "match": "\\+|-|\\*|\\!|\\~|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
         },
         {
-            "name": "constant.string",
-            "match": "`.*?`"
+            "name": "keyword",
+            "match": "\\b(if|else|while|until|for|foreach|try|catch|fun|func|function|return|and|or|xor|scoped|local)\\b"
         },
         {
-            "name": "keyword.control",
-            "match": "\\b(if|else|while|until|or|try|catch|fun|func|function|return|and|or|xor|cscall::|hscript::)\\b"
+            "name": "keyword.special",
+            "match": "\\b((cscall|hscript)::|::)"
+        },
+        {
+            "name": "hscript.method-call",
+            "begin": "hscript::[a-zA-Z_][a-zA-Z0-9_]*::[a-zA-Z_][a-zA-Z0-9_]*\\s*",
+            "end": "\\w+\\s*(\\*|\\)|,)",
+            "patterns": [
+                {
+                    "include": "#entity.name.function"
+                },
+                {
+                    "include": "#function.parameter"
+                }
+            ]
         },
         {
             "name": "keyword.control.hscript",
@@ -45,50 +58,97 @@
             ]
         },
         {
-            "name": "comment.block",
-            "begin": "###",
-            "end": "###",
-            "patterns": [
-                {
-                    "name": "comment.block.content",
-                    "begin": "^###",
-                    "end": "###$"
-                }
-            ]
-        },
-        {
-            "name": "comment.line",
+            "name": "comment",
             "begin": "#",
             "end": "$"
         },
         {
             "name": "constant.numeric.decimal",
-            "match": "\\b[0-9]+\\b"
+            "match": "\\b[0-9_]+\\b"
         },
         {
             "name": "constant.numeric.hexadecimal",
-            "match": "\\b0[xX][0-9a-fA-F]+\\b"
+            "match": "\\b0[xX][0-9a-fA-F_]+\\b"
         },
         {
             "name": "constant.numeric.binary",
-            "match": "\\b0[bB][01]+\\b"
+            "match": "\\b0[bB][01_]+\\b"
         },
         {
-            "name": "constant.string",
-            "match": "\".*?\""
+            "name": "string.quoted.double",
+            "begin": "\"",
+            "end": "\""
         },
         {
-            "name": "constant.interpolated-string",
+            "name": "string.quoted.backtick",
+            "begin": "`",
+            "end": "`"
+        },
+        {
+            "name": "string.quoted.double.dollar",
             "begin": "\\$\"",
             "end": "\"",
             "patterns": [
                 {
-                    "name": "variable",
-                    "match": "\\{\\w+\\}"
+                    "name": "punctuation.definition.string.begin",
+                    "match": "\\$\""
                 },
                 {
-                    "name": "string",
-                    "match": "[^\\{\\}]+"
+                    "name": "punctuation.definition.string.end",
+                    "match": "\""
+                },
+                {
+                    "name": "variable.other.interpolated",
+                    "begin": "\\{.*?\\}",
+                    "end": "\\}",
+                    "patterns": [
+                        {
+                            "name": "punctuation.section.embedded.begin",
+                            "match": "\\{"
+                        },
+                        {
+                            "name": "punctuation.section.embedded.end",
+                            "match": "\\}"
+                        },
+                        {
+                            "name": "constant.other.placeholder",
+                            "match": "\\@?[a-zA-Z_][a-zA-Z0-9_]*"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "string.quoted.backtick.dollar",
+            "begin": "\\$`",
+            "end": "`",
+            "patterns": [
+                {
+                    "name": "punctuation.definition.string.begin",
+                    "match": "\\$`"
+                },
+                {
+                    "name": "punctuation.definition.string.end",
+                    "match": "`"
+                },
+                {
+                    "name": "variable.other.interpolated",
+                    "begin": "\\{.*?\\}",
+                    "end": "\\}",
+                    "patterns": [
+                        {
+                            "name": "punctuation.section.embedded.begin",
+                            "match": "\\{"
+                        },
+                        {
+                            "name": "punctuation.section.embedded.end",
+                            "match": "\\}"
+                        },
+                        {
+                            "name": "constant.other.placeholder",
+                            "match": "\\@?[a-zA-Z_][a-zA-Z0-9_]*"
+                        }
+                    ]
                 }
             ]
         },
@@ -102,7 +162,29 @@
         },
         {
             "name": "constant.null",
-            "match": "\\b(null|nil|None)\\b"
+            "match": "\\b(null|nil|None|undefined|void)\\b"
+        },
+        {
+            "name": "constant.null",
+            "match": "\\b(string|char|decimal|double|float|int|uint|byte|sbyte|short|ushort|long|ulong|String|Char|Byte|SByte|Int16|Int32|Int64|UInt16|UInt32|UInt64|Void|Null)\\b"
+        },
+        {
+            "name": "support.function.single-line",
+            "begin": "(?=[-=]\\>){",
+            "end": "}",
+            "patterns": []
+        },
+        {
+            "name": "punctuation.definition.comment",
+            "begin": "###",
+            "end": "###",
+            "patterns": [
+                {
+                    "name": "comment.block.content",
+                    "begin": "^###",
+                    "end": "###$"
+                }
+            ]
         },
         {
             "name": "punctuation.semicolon",
@@ -119,6 +201,14 @@
         {
             "name": "punctuation.comma",
             "match": ","
+        },
+        {
+            "name": "variable",
+            "match": "\\@?[a-zA-Z_][a-zA-Z0-9_]*"
+        },
+        {
+            "name": "variable.parameter.function",
+            "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\s*(?:,\\s*[a-zA-Z_][a-zA-Z0-9_]*\\s*)*->"
         }
     ]
 }

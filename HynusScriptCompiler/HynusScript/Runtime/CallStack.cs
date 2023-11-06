@@ -23,8 +23,10 @@ internal class CallStack
         return Stack.Pop();
     }
 
-    public HFunctionCallContext Peek()
+    public HFunctionCallContext? Peek()
     {
+        if (Stack.Count == 0) 
+            return null;
         return Stack.Peek();
     }
 }
