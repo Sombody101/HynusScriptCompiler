@@ -56,7 +56,7 @@ public static partial class Operations
     public static string InterpolateString(string str)
     {
         return InterpolatedStringRegex().Replace(str,
-            match => RuntimeMembers.LocateVariable(match.Groups[1].Value, out var variable) != -1
+            match => RuntimeMembers.LocateVariable(match.Groups[1].Value, out var variable) is not ScopeType.NotFound
                 ? $"{variable}"
                 : $"{RVar.Default}"
         );

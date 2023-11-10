@@ -1,5 +1,6 @@
 ﻿using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
 using HynusScriptCompiler.HynusScript.HTypes;
+using Spectre.Console;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -32,8 +33,22 @@ internal static class HRuntime
 {
     public static void Error(this HException ex)
     {
-        Logging.LogError($"[red]{ex.GetType().Name}[/]: {ex.Message} " +
-            $"{(ex.Context is not null ? ($"{ex.Context.Start.Line}:{ex.Context.Start.Column}") : "")}");
+        Logging.LogError($"[red]{ex.GetType().Name}[/]: {(ex.Context is not null 
+            ? ($"[[{ex.Context.Start.Line}:{ex.Context.Start.Column}]]") 
+            : "")} {ex.Message}");
+    }
+
+    public static void Error(this Exception ex)
+    {
+        Logging.LogError($"[red]{ex.GetType().Name}[/]: {ex.Message}");
+    }
+
+    public static void Exit(HScriptResult res)
+    {
+        if (Config.ShowLogs)
+            AnsiConsole.MarkupLine($"\rScript exit result: [lime]{res}[/]");
+
+        Environment.Exit((int)res);
     }
 
     public static string GetTypeName(this object? obj)
@@ -64,38 +79,6 @@ internal static class HRuntime
         Task.Delay(ms).GetAwaiter().GetResult();
     }
 
-    public static object? ExecuteCSharp(string code)
-    {
-        try
-        {
-            string[] parts = code.Split(new[] { "::" }, StringSplitOptions.None);
-
-            if (parts.Length == 2)
-            {
-                string typeName = parts[0];
-                string methodCode = parts[1];
-
-                // Use reflection to dynamically load and invoke the method
-                Type type = Type.GetType(typeName);
-                MethodInfo method = type.GetMethod("Invoke", new Type[] { typeof(string) });
-                if (method != null)
-                {
-                    object instance = Activator.CreateInstance(type);
-                    object result = method.Invoke(instance, new object[] { methodCode });
-
-                    return result;
-                }
-            }
-
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException("An error occurred while executing dynamic C#", ex);
-            return null;
-        }
-    }
-
     public static string ResolveAssemblyPaths(this string assemblyPath)
     {
         if (string.IsNullOrEmpty(assemblyPath) || !assemblyPath.Contains('['))
@@ -109,8 +92,7 @@ internal static class HRuntime
 
     public static Dictionary<string, HFunction> Merge(this IEnumerable<Dictionary<string, HFunction>> dictionaries)
     {
-        return dictionaries.SelectMany(dict => dict)
-                                 .ToDictionary(pair => pair.Key, pair => pair.Value);
+        return dictionaries.SelectMany(dict => dict).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 
     private static readonly Dictionary<string, string> AssemblyVariables = new()

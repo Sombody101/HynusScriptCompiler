@@ -12,27 +12,29 @@ internal class HFunction
 {
     private readonly object Function;
 
-
+    public string FilePathLocation { get; init; }
     public string Name { get; set; }
+
     public Dictionary<string, object?> Parameters { get; set; }
 
     public HFunction(Func<object[], object?> func)
     {
-        Name = $"built-in".AsMemberName();
+        Name = $"function-built-in".AsMemberName();
         Function = func;
         Parameters = new(0);
+        FilePathLocation = "built-in";
     }
 
     public HFunction(string name, Dictionary<string, object?> param, HScriptParser.BlockContext hscript)
     {
-        Name = name;
+        Name = $"function-{name}".AsMemberName();
         Function = hscript;
         Parameters = param;
     }
 
     public HFunction(HScriptParser.BlockContext hscript)
     {
-        Name = $"user-defined-closure".AsMemberName();
+        Name = $"function-closure".AsMemberName();
         Function = hscript;
         Parameters = new(0);
     }
@@ -46,18 +48,9 @@ internal class HFunction
 
         else if (Function is HScriptParser.BlockContext context)
         {
-            //Dictionary<string, object?> vars = new()
-            //{
-            //    { "$@", obs.Select(ob => ob.ToString() ?? RVar.Default) },
-            //    { "$#", obs.Length }
-            //};
-            //
-            //for (int i = 0; i < obs.Length; i++)
-            //    vars.Add($"${i + 1}", obs[i]);
-
             Dictionary<string, object?> vars = MapParameters(Parameters, obs);
 
-            RuntimeMembers.CallStack.Push(new HFunctionCallContext(Name, vars));
+            RuntimeMembers.CallStack.Push(new HScopeContext(Name, vars));
             var ret = HScriptRuntime.StaticAccess.Visit(context);
             RuntimeMembers.CallStack.Pop();
 
@@ -92,18 +85,6 @@ internal class HFunction
 
 }
 
-internal class HFunctionCallContext
-{
-    public string ID { get; }
-    public Dictionary<string, object?> ScopedVariables { get; private set; }
-
-    public HFunctionCallContext(string id, Dictionary<string, object?> scopedVariables)
-    {
-        ID = id;
-        ScopedVariables = scopedVariables;
-    }
-}
-
 internal static class BuiltInFunctions
 {
     /// <summary>
@@ -112,6 +93,9 @@ internal static class BuiltInFunctions
     /// <returns></returns>
     public static Dictionary<string, HFunction> GetBuiltInFunctions()
     {
+        // Moving in new direction, only certain functions can be defined in C# (maybe just special keywords)
+        return new();
+
         return new()
         {
             { "Input", new(Input) },

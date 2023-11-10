@@ -1,10 +1,17 @@
-﻿using Spectre.Console;
+﻿using HynusScriptCompiler.HynusScript.Runtime;
+using Spectre.Console;
 using System.Text;
 
 namespace HynusScriptCompiler;
 
 internal static class Logging
 {
+    public static void ILog(string log)
+    {
+        if (Config.ShowLogs)
+            AnsiConsole.MarkupLine("[magenta1]HScript[/]: " + log);
+    }
+
     public static void WriteLine(string line = "")
         => AnsiConsole.MarkupLine(line);
 

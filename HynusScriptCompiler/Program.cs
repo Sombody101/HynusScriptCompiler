@@ -1,14 +1,19 @@
 ﻿using HynusScriptCompiler.HynusScript;
-using Spectre.Console;
 using Spectre.Console.Cli;
+using System.Data.SqlTypes;
+using System.Diagnostics;
 
 namespace HynusScriptCompiler;
 
+/*
+ *  Legit considering renaming it to "HellScript" because of the syntax
+ */
+
 public static class Program
 {
-    public static int Main(string[] args)
+    public static void Main(string[] args)
     {
-        args = "run ../../../test.hscript -l".Split();
+        args = "run ../../../test.hscript".Split();
 
         var app = new CommandApp();
 
@@ -24,11 +29,12 @@ public static class Program
                 .WithDescription("Runs the selected file path, or the input script string when used with -s|--whole-script");
         });
 
-        var commandResult = app.Run(args);
+        app.Run(args); // Parse user input and apply it to Config (static)
 
-        if (Config.ShowLogs)
-            AnsiConsole.MarkupLine($"Script exit result: [lime]{(HScriptResult)commandResult}[/]");
+        var scriptResult = Config.WholeScript
+            ? HScriptReader.RunScriptFromString(Config.FilePath)
+            : HScriptReader.RunScriptFromFile(Config.FilePath);
 
-        return commandResult;
+        HRuntime.Exit(scriptResult);
     }
 }

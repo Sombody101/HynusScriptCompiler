@@ -1,0 +1,38 @@
+sclass console {
+    ###
+    #   Console manipulation
+    ###
+
+    fun write     line -> hscript::void::System.Console.Write     line
+    fun writeLine line -> hscript::void::System.Console.WriteLine line
+    fun beep      freq, dur -> hscript::void::System.Console.Beep freq, dur
+}
+
+###
+#   Numberic conversions
+###
+
+typecast sbyte  str -> hscript::SByte::System.Convert.ToSByte   str
+typecast short  str -> hscript::Int16::System.Convert.ToInt16   str
+typecast int    str -> hscript::Int32::System.Convert.ToInt32   str
+typecast long   str -> hscript::Int64::System.Convert.ToInt64   str
+typecast byte   str -> hscript::Byte::System.Convert.ToByte     str
+typecast ushort str -> hscript::UInt16::System.Convert.ToUInt16 str
+typecast uint   str -> hscript::UInt32::System.Convert.ToUInt32 str
+typecast ulong  str -> hscript::UInt64::System.Convert.ToUInt64 str
+
+sclass string {
+    ###
+    #   String conversion
+    ###
+
+    typecast string obj -> hscript::String::System.Convert.ToString obj
+    fun format str, form -> hscript::String::System.String.Format str, form
+}
+###
+#   Threading
+###
+
+fun delay ms -> hscript::void::System.Threadding.Tasks.Delay ms
+
+###

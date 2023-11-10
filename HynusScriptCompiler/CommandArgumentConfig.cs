@@ -28,9 +28,7 @@ public class ScriptFileSettingsCommand : Command<ScriptFileSettingsCommand.Scrip
         Config.ForceRun = settings.ForceRun;
         Config.ShowLogs = settings.ShowLogs;
 
-        return Config.WholeScript 
-            ? (int)HScriptReader.RunScriptFromString(Config.FilePath) 
-            : (int)HScriptReader.RunScriptFromFile(Config.FilePath);
+        return 0;
     }
 }
 

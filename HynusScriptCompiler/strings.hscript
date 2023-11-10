@@ -1,0 +1,11 @@
+using "test.hscript"
+
+tmp t = "nothing"
+
+console.writeLine("hello")
+
+fun writeStuff() { 
+    console.writeLine("heres some stuff");
+}
+
+hscript::void::System.Console.WriteLine("hello")

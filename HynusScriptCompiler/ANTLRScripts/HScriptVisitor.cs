@@ -62,6 +62,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitElseIfBlock([NotNull] HScriptParser.ElseIfBlockContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.elseBlock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitElseBlock([NotNull] HScriptParser.ElseBlockContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.whileBlock"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -86,6 +92,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitTryCatch([NotNull] HScriptParser.TryCatchContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.exBlock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExBlock([NotNull] HScriptParser.ExBlockContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.exceptionInfo"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -109,6 +121,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitFunctionDefinition([NotNull] HScriptParser.FunctionDefinitionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.typeCastDefinition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTypeCastDefinition([NotNull] HScriptParser.TypeCastDefinitionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.functionParameter"/>.
 	/// </summary>
@@ -220,6 +238,13 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFunctionCallExpression([NotNull] HScriptParser.FunctionCallExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>assignOpExpression</c>
+	/// labeled alternative in <see cref="HScriptParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAssignOpExpression([NotNull] HScriptParser.AssignOpExpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>unaryExpression</c>
 	/// labeled alternative in <see cref="HScriptParser.expression"/>.
 	/// </summary>
@@ -227,18 +252,19 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitUnaryExpression([NotNull] HScriptParser.UnaryExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>doubleStatementExpression</c>
+	/// labeled alternative in <see cref="HScriptParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDoubleStatementExpression([NotNull] HScriptParser.DoubleStatementExpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>functionClosureExpression</c>
 	/// labeled alternative in <see cref="HScriptParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitFunctionClosureExpression([NotNull] HScriptParser.FunctionClosureExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="HScriptParser.doubleStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDoubleStatement([NotNull] HScriptParser.DoubleStatementContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.addOp"/>.
 	/// </summary>
@@ -270,6 +296,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitComareOp([NotNull] HScriptParser.ComareOpContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.assignOp"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAssignOp([NotNull] HScriptParser.AssignOpContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.boolOp"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -287,6 +319,18 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitVerbatimString([NotNull] HScriptParser.VerbatimStringContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.scriptImport"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScriptImport([NotNull] HScriptParser.ScriptImportContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.libBuiltIn"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLibBuiltIn([NotNull] HScriptParser.LibBuiltInContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>scriptVersionConfig</c>
 	/// labeled alternative in <see cref="HScriptParser.scriptConfiguration"/>.
@@ -309,13 +353,6 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitEnableDebugConfig([NotNull] HScriptParser.EnableDebugConfigContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>importScriptConfig</c>
-	/// labeled alternative in <see cref="HScriptParser.scriptConfiguration"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitImportScriptConfig([NotNull] HScriptParser.ImportScriptConfigContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.scriptVersion"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -333,12 +370,6 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitEnableDebug([NotNull] HScriptParser.EnableDebugContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="HScriptParser.importScript"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitImportScript([NotNull] HScriptParser.ImportScriptContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.arrBlock"/>.
 	/// </summary>
@@ -376,6 +407,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOpBlock([NotNull] HScriptParser.OpBlockContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.staticClass"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStaticClass([NotNull] HScriptParser.StaticClassContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.nestedVariable"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -387,6 +424,12 @@ public interface IHScriptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLocalIdentifier([NotNull] HScriptParser.LocalIdentifierContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="HScriptParser.tempIdentifier"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTempIdentifier([NotNull] HScriptParser.TempIdentifierContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="HScriptParser.specialHScript"/>.
 	/// </summary>

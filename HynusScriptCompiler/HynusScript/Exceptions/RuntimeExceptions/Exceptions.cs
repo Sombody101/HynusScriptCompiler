@@ -7,9 +7,9 @@ public class InvalidScriptInfoException : Exception
     { }
 }
 
-public class UnknownHScriptTypeException : Exception
+public class ScriptImportException : Exception
 {
-    public UnknownHScriptTypeException(string type) 
-        : base($"Unknown HScript type '{type}'")
+    public ScriptImportException(string message)
+        : base(message)
     { }
 }

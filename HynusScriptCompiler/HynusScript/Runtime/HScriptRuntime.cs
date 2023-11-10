@@ -2,6 +2,7 @@
 using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
 using HynusScriptCompiler.HynusScript.Exceptions.RuntimeExceptions;
 using HynusScriptCompiler.HynusScript.HTypes;
+using Spectre.Console;
 using System.Reflection;
 
 namespace HynusScriptCompiler.HynusScript.Runtime;
@@ -13,17 +14,52 @@ namespace HynusScriptCompiler.HynusScript.Runtime;
  * Copy with some modifications of: https://www.youtube.com/watch?v=bfiAvWZWnDA&t=638s&ab_channel=BenMakesGames
  */
 
+internal enum ScopeType
+{
+    /// <summary>
+    /// The variable doesn't exist
+    /// </summary>
+    NotFound = -1,
+
+    /// <summary>
+    /// Any variable defined without the 'local' keyword will be created as a global
+    /// </summary>
+    Global = 0,
+
+    /// <summary>
+    /// The user defined this variable inside of a scope (that being a function or a block with the 'local' or 'scoped' keywords)
+    /// </summary>
+    Scoped,
+
+    /// <summary>
+    /// Essensially the same as <see cref="Global"/>, but the user cannot delete it
+    /// </summary>
+    Preset,
+
+}
+
 internal static class RuntimeMembers
 {
+    public static string ProjectRoot { get; private set; }
+    public static Stack<string> FileStack { get; private set; } = new();
+    public static HashSet<string> ImportedFiles { get; private set; } = new();
     public static bool UserDebug { get; set; } = false;
+    public static string AssignClassName { get; set; } = "";
+
+    public static void SetProjectRoot(string path)
+        => ProjectRoot = path;
+
+    public static string CurrentFile { get => FileStack.Peek(); }
 
     public static void Initialize()
     {
-        // HScript is going in a new, real language like direction
-        // All functions will be defined *in* the language itself
-        // Debugging methods could go to another direction
+        /* 
+         * HScript is going in a new, real language like direction
+         * All functions will be defined *in* the language itself
+         * Debugging methods could go to another direction
+         */
 
-        Functions = new(); //BuiltInFunctions.GetBuiltInFunctions();
+        Functions = BuiltInFunctions.GetBuiltInFunctions();
         CallStack = new();
         Variables = new();
         PresetVariables = new()
@@ -37,9 +73,14 @@ internal static class RuntimeMembers
 
 #pragma warning disable CS8618
     /// <summary>
-    /// Functions defined by the user.
+    /// Functions defined by the user. (Won't be as important if classes are fully supported)
     /// </summary>
     internal static Dictionary<string, HFunction> Functions { get; private set; }
+
+    /// <summary>
+    /// This is gonna make me wanna kms gl
+    /// </summary>
+    internal static Dictionary<string, HClass> DefinedClasses { get; private set; }
 
     /// <summary>
     /// Context information for every function called.
@@ -49,7 +90,7 @@ internal static class RuntimeMembers
     /// <summary>
     /// Get the currently executing function
     /// </summary>
-    internal static HFunctionCallContext CurrentFunc { get => CallStack.Peek(); }
+    internal static HScopeContext? CurrentScope { get => CallStack.Peek(); }
 
     /// <summary>
     /// Variables that can be created, modified, and deleted by the user.
@@ -62,50 +103,60 @@ internal static class RuntimeMembers
     internal static Dictionary<string, object?> PresetVariables { get; private set; }
 #pragma warning restore CS8618
 
-    public static int LocateVariable(string var, out object? variable)
+    public static ScopeType LocateVariable(string var, out object? variable)
     {
+        variable = null;
+
+
         // Get scoped variable
-        if (CurrentFunc is not null && CurrentFunc.ScopedVariables.TryGetValue(var, out var fVar))
+        if (CallStack.TryGetScopedVariable(var, out var fVar))
         {
             variable = fVar;
-            return 3;
+            return ScopeType.Scoped;
         }
 
         // Get regular variable
         if (Variables.TryGetValue(var, out var v))
         {
             variable = v;
-            return 1;
+            return ScopeType.Global;
         }
         // Environment variables
         else if (PresetVariables.TryGetValue(var, out var pv))
         {
             variable = pv;
-            return 2;
+            return ScopeType.Preset;
         }
 
-        variable = null;
-        return -1;
+        return ScopeType.NotFound;
     }
 
-    public static int LocateFunction(string name, out HFunction? func)
+    public static ScopeType LocateFunction(string name, out HFunction? func)
     {
         if (Functions.TryGetValue(name, out var f))
         {
             if (f is HFunction F)
             {
                 func = F;
-                return 1;
+                return ScopeType.Global;
+            }
+        }
+        else if (CallStack.TryGetScopedVariable(name, out var sf))
+        {
+            if (sf is HFunction sF)
+            {
+                func = sF;
+                return ScopeType.Scoped;
             }
         }
         else if (Variables.TryGetValue(name, out var vf) && vf is HFunction vF)
         {
             func = vF;
-            return 2;
+            return ScopeType.Global;
         }
 
         func = null;
-        return -1;
+        return ScopeType.NotFound;
     }
 
     public static void OverwriteBuiltInFunctions(Dictionary<string, HFunction> funcs)
@@ -120,6 +171,9 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
     {
         StaticAccess = this;
         RuntimeMembers.Initialize();
+
+        // Create a new stack element that represents the script entry point (Allows for some jimmy-rigged scoping)
+        RuntimeMembers.CallStack.Push(new("script-entry".AsMemberName()));
     }
 
     /* Script Configurations */
@@ -131,10 +185,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         string[] versionComponents = version.Split('.');
 
         if (versionComponents.Length < 2 || versionComponents.Length > 4)
-        {
-            Logging.LogError("Invalid version format. It should have 2, 3, or 4 segments. (Example: '?>> [yellow]4.0.2[/]')");
-            Environment.Exit((int)HScriptResult.InvalidScriptVersion);
-        }
+            throw new HScriptInvalidScriptVersionException("Invalid version format. It should have 2, 3, or 4 segments. (Example: '?>> [yellow]4.0.2[/]')", context);
 
         Version assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
         Version scriptVersion = new(version);
@@ -143,6 +194,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         int scriptToInterpreterComparison = scriptVersion.CompareTo(assemblyVersion);
         int scriptToAssemblyComparison = scriptVersion.CompareTo(assemblyVersion);
 
+        // Ignore possible issues and return to script
         if (Config.ForceRun)
             return null;
 
@@ -155,16 +207,74 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         return null;
     }
 
-    public override object? VisitImportScriptConfig([NotNull] HScriptParser.ImportScriptConfigContext context)
+    /// <summary>
+    /// Imports a new script. Works similar to C/C++, but rather than relying on the developer to account for circular depenancies, the file name
+    /// is added to a <see cref="HashSet{String}"/>. It will still work the exact same way.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptInvalidInputParameterException"></exception>
+    /// <exception cref="ScriptImportException"></exception>
+    public override object? VisitScriptImport([NotNull] HScriptParser.ScriptImportContext context)
     {
-        //var filePath = Visit(context.importScript().IDENTIFIER());
-        //
-        //if (filePath is string path)
-        //{
-        //    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
-        //
-        //    HScriptReader.RunScriptFromFile();
-        //}
+        string filePath = "INVALID_INPUT";
+
+        if (context.libBuiltIn() is { } lib)
+            filePath = lib.IDENTIFIER().GetText();
+        else if (context.expression() is { } expr)
+        {
+            var ret = Visit(expr);
+
+            if (ret is not string)
+                throw new HScriptInvalidInputParameterException(typeof(string), ret);
+
+            filePath = (string)ret;
+        }
+
+        if (filePath is string path)
+        {
+            string directoryPath = RuntimeMembers.ProjectRoot;
+            string inputFileName = path.TrimStart('/'); // Remove leading slashes from the input.
+
+            // Get a list of files in the directory and filter them based on user input.
+            string[] matchingFiles = Directory.GetFiles(directoryPath)
+                .Select(Path.GetFileName)
+                .Where(fileName => fileName.StartsWith(inputFileName, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            // Import the script
+            if (matchingFiles.Length == 1)
+            {
+                string realPath = Path.Combine(directoryPath, matchingFiles[0]);
+
+                if (!RuntimeMembers.ImportedFiles.Add(realPath))
+                    return null;
+
+                Logging.ILog("Attempting to load file from: " + realPath);
+
+                RuntimeMembers.CallStack.Push(new("script-import".AsMemberName()));
+                var ret = HScriptReader.RunScriptFromFile(realPath);
+                if (ret is not HScriptResult.Successful)
+                {
+                    var fileName = Path.GetFileName(realPath);
+                    throw new ScriptImportException($"Failed to import script [yellow]{fileName}[/]{(fileName != path ? $" [[{realPath}]]" : "")}\r\n\t└─ [lime]{ret}[/]");
+                }
+
+                RuntimeMembers.CallStack.Pop();
+                Logging.ILog("Script imported");
+            }
+
+            else if (matchingFiles.Length > 1)
+            {
+                Logging.WriteData($"[red][[-]][/]File reference ambiguity for '{path}'\r\nPossible alternatives:", matchingFiles);
+                HRuntime.Exit(HScriptResult.FileImportAmbiguity);
+            }
+            else
+            {
+                Logging.LogError($"Failed to find file to import by the name of '{Path.GetFileName(path)}'");
+                HRuntime.Exit(HScriptResult.FileImportNotFound);
+            }
+        }
 
         return null;
     }
@@ -212,27 +322,52 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
     /* Variables And Datatypes */
 
+    /// <summary>
+    /// Creates a variable by adding it to <see cref="RuntimeMembers.Variables"/>. The variable will be pushed to the most recent element 
+    /// on <see cref="RuntimeMembers.CallStack"/> if the variable assignment starts with '<see langword="scoped"/>' or '<see langword="local"/>'.
+    /// <para>
+    /// The keyword '<see langword="temporary"/>' will remove the variable after the script file exits.
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptInvalidOperationException"></exception>
     public override object? VisitAssignment([NotNull] HScriptParser.AssignmentContext context)
     {
         string varName;
         object? value;
 
+        // Regular variable
         if (context.IDENTIFIER() is { } iden)
             varName = iden.GetText();
+        // Check if it's an array
         else if (context.arrAccess() is { } arrAcc)
             varName = arrAcc.GetText();
+        // Check for 'local' or 'scoped' keywords
         else if (context.localIdentifier() is { } local)
         {
-            varName = local.IDENTIFIER().GetText();
-            RuntimeMembers.CurrentFunc.ScopedVariables[varName] = "";
-        }
+            if (RuntimeMembers.CurrentScope is null || RuntimeMembers.CallStack.Count == 1)
+                throw new HScriptInvalidOperationException("The 'local' or 'scoped' keywords can only be used within blocks or a scoped area (i.e. functions)");
 
+            varName = RuntimeMembers.AssignClassName + local.IDENTIFIER().GetText();
+
+            // Create the variable in the scope, it will be assigned the correct value later
+            RuntimeMembers.CurrentScope.ScopedVariables[varName] = "";
+        }
+        else if (context.tempIdentifier() is { } tmp)
+        {
+            if (RuntimeMembers.CurrentScope is null || RuntimeMembers.CurrentScope.ID.StartsWith("script-import"))
+                throw new HScriptInvalidOperationException("The 'temporary' keyword can only be used in top-level areas of a script");
+
+            varName = RuntimeMembers.AssignClassName + tmp.IDENTIFIER().GetText();
+            RuntimeMembers.CurrentScope.ScopedVariables[varName] = "";
+        }
         else
             throw new HScriptInvalidOperationException("Failed to locate the variable name for assignment");
 
         if (context.expression() is { } expr)
             value = Visit(expr);
-        else if (context.arrBlock() is { } arrBlock)
+        else if (context.arrBlock() is { } arrBlock) // Check if it's an array rather than a regular variable
         {
             List<object?> values = new();
             foreach (var exp in arrBlock.expression())
@@ -244,21 +379,27 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
         switch (RuntimeMembers.LocateVariable(varName, out _))
         {
-            case -1:
-            case 1: // Normal/no var
+            case ScopeType.NotFound:
+            case ScopeType.Global: // Normal/no var
                 RuntimeMembers.Variables[varName] = value;
                 break;
-            case 2: // Preset var
+            case ScopeType.Preset: // Preset var
                 RuntimeMembers.PresetVariables[varName] = value;
                 break;
-            case 3: // Scoped variables
-                RuntimeMembers.CurrentFunc.ScopedVariables[varName] = value;
+            case ScopeType.Scoped: // Scoped variables
+                RuntimeMembers.CurrentScope!.ScopedVariables[varName] = value;
                 break;
         }
 
         return value;
     }
 
+    /// <summary>
+    /// An <see langword="IDENTIFIER"/> is just a name to <see langword="HScript"/>.
+    /// This will resolve them into their variable value, or return <see cref="RVar.Default"/> if it doesn't exist.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override object? VisitIdentifierExpression([NotNull] HScriptParser.IdentifierExpressionContext context)
     {
         string name = context.IDENTIFIER().GetText();
@@ -268,16 +409,26 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             return null;
 
         // Regular variable access
-        if (RuntimeMembers.LocateVariable(name, out var variable) != -1)
+        if (RuntimeMembers.LocateVariable(name, out var variable) is not ScopeType.NotFound)
             return variable;
 
         // Check if its a function
-        if (RuntimeMembers.LocateFunction(name, out var func) != -1)
+        if (RuntimeMembers.LocateFunction(name, out var func) is not ScopeType.NotFound)
             return func;
 
         return RVar.Default;
     }
 
+    /// <summary>
+    /// Allows you to use a variable as if it were a pointer as long as the variable reference starts with the '<see langword="@"/>' character.
+    /// The variable will be searched recursively, meaning if the content of the next variable is a string and starts with '<see langword="@"/>', then the
+    /// operation will search for that variable as well.
+    /// <para>
+    /// Note: A circular reference can be made with this method, so use carefully.
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override object? VisitNestedVariableExpression([NotNull] HScriptParser.NestedVariableExpressionContext context)
     {
         return ResolveNestedVariables(context.nestedVariable().GetText());
@@ -285,6 +436,10 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
     public override object? VisitArrayAccessExpression([NotNull] HScriptParser.ArrayAccessExpressionContext context)
     {
+        return null;
+
+        // No idea why I'm trying to handle arrays like this. I'll just use the method JS uses.
+
         var var = Visit(context.arrAccess());
 
         if (var is null)
@@ -323,7 +478,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             else if (Int128.TryParse(inum, out var i128))
                 return i128;
 
-            throw new HScriptInvalidOperationException($"Cannot process number '{inum}'");
+            throw new HScriptInvalidOperationException($"Cannot process number '{inum}'", context);
         }
 
         if (context.UINTEGER() is { } unum)
@@ -336,7 +491,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             else if (UInt128.TryParse(uinum, out var ui128))
                 return ui128;
 
-            throw new HScriptInvalidOperationException($"Cannot process number '{uinum}'");
+            throw new HScriptInvalidOperationException($"Cannot process number '{uinum}'", context);
         }
 
         if (context.HEX() is { } hex)
@@ -375,10 +530,10 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         if (context.BOOL() is { } bul)
             return bul.GetText() is "true" or ":" or "True";
 
-        if (context.NULL() is { })
+        if (context.NULL() is { }) // * nothing * //
             return null;
 
-        throw new UnknownHScriptTypeException(context.GetText());
+        throw new HScriptUnknownTypeException(context.GetText(), context);
     }
 
     public override object? VisitParethesizedExpression([NotNull] HScriptParser.ParethesizedExpressionContext context)
@@ -388,6 +543,12 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
 
     /* Function Calls And Definitions */
 
+    /// <summary>
+    /// Defines an <see cref="HFunction"/> and adds it to the <see cref="RuntimeMembers.Functions"/> dictionary
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public override object? VisitFunctionDefinition([NotNull] HScriptParser.FunctionDefinitionContext context)
     {
         Dictionary<string, object?> args = new();
@@ -407,18 +568,86 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
                     throw new Exception("Function definition cannot contain multiple parameters with the same identifier name");
         }
 
-        var funcName = context.IDENTIFIER().GetText();
+        var className = RuntimeMembers.AssignClassName is not ""
+            ? RuntimeMembers.AssignClassName[0..^1]
+            : "";
+        
+        var funIden = context.IDENTIFIER().GetText();
+
+        // Don't append the class name to a function named after the class 
+        var funcName = className == funIden
+            ? className
+            : RuntimeMembers.AssignClassName + context.IDENTIFIER().GetText();
+
         var func = new HFunction(funcName, args, context.block());
         RuntimeMembers.Functions[funcName] = func;
 
         return func;
     }
 
+    /// <summary>
+    /// A mimic of <see cref="VisitFunctionDefinition"/> but with a <see langword="TYPE"/> as the
+    /// <see langword="IDENTIFIER"/>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public override object? VisitTypeCastDefinition([NotNull] HScriptParser.TypeCastDefinitionContext context)
+    {
+        Dictionary<string, object?> args = new();
+        if (context.functionParameter() is { } fParams)
+            foreach (var param in fParams)
+                if (param.IDENTIFIER() is { } iden)
+                    args.Add(iden.GetText(), new HUndefined());
+                else if (param.functionPresetParameter() is { } fPParam)
+                    args.Add(fPParam.IDENTIFIER().GetText(), Visit(fPParam.constant()));
+                else throw new Exception("IDEK what happened my guy");
+
+        if (args.Count > 0)
+        {
+            HashSet<string> fIdens = new();
+            foreach (var param in args.Select(arg => arg.Key))
+                if (!fIdens.Add(param))
+                    throw new Exception("Function definition cannot contain multiple parameters with the same identifier name");
+        }
+
+        var className = RuntimeMembers.AssignClassName is not "" 
+            ? RuntimeMembers.AssignClassName[0..^1]
+            : "";
+
+        var funIden = context.TYPE().GetText();
+
+        // Don't append the class name to a function named after the class 
+        var funcName = className == funIden
+            ? className
+            : RuntimeMembers.AssignClassName + context.TYPE().GetText();
+
+        var func = new HFunction(funcName, args, context.block());
+        RuntimeMembers.Functions[funcName] = func;
+
+        return func;
+    }
+
+    /// <summary>
+    /// Defines an <see cref="HFunction"/> as a variable that can still be invoked (Limited to no input arguments)
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override object VisitFunctionClosureExpression([NotNull] HScriptParser.FunctionClosureExpressionContext context)
     {
         return new HFunction(context.functionClosure().block());
     }
 
+    /// <summary>
+    /// Does as the name implies. It invokes an <see cref="HFunction"/> defined in <see cref="RuntimeMembers.Functions"/>
+    /// <para>
+    /// If no <see cref="HFunction"/> with the same name can be found in <see cref="RuntimeMembers.Functions"/>, then <see cref="RuntimeMembers.Variables"/> is
+    /// checked. If no <see cref="HFunction"/> is found there either, then an <see cref="HScriptUnknownFunctionReferenceException"/> is thrown.
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptUnknownFunctionReferenceException"></exception>
     public override object? VisitFunctionCall([NotNull] HScriptParser.FunctionCallContext context)
     {
         var name = context.IDENTIFIER().GetText();
@@ -426,21 +655,31 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         object?[]? args;
         args = context.expression().Select(Visit).ToArray() ?? Array.Empty<object?>();
 
-        if (RuntimeMembers.LocateFunction(name, out var func) != -1)
+        if (RuntimeMembers.LocateFunction(name, out var func) is not ScopeType.NotFound)
             return func!.Invoke(args!);
 
         throw new HScriptUnknownFunctionReferenceException(name);
     }
 
+    /// <summary>
+    /// Piggybacks off of <see cref="VisitBlock"/>, but provides a specific scope.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override object? VisitBlockExpression([NotNull] HScriptParser.BlockExpressionContext context)
     {
-        RuntimeMembers.CallStack.Push(new("temp-block".AsMemberName(), new()));
+        RuntimeMembers.CallStack.Push(new("tmp-block".AsMemberName(), new()));
         // Forward to VisitBlock
         var ret = Visit(context.block());
         RuntimeMembers.CallStack.Pop();
         return ret;
     }
 
+    /// <summary>
+    /// Executes every line within a block. Breaks when '<see langword="return"/>' is encountered.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override object? VisitBlock([NotNull] HScriptParser.BlockContext context)
     {
         // If function is single line (Starting with '=>'), return line result
@@ -462,60 +701,43 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         return RVar.Default;
     }
 
+    /// <summary>
+    /// Handles every if operation (Supports else-if-else chains)
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptInvalidOperationException"></exception>
     public override object? VisitIfBlock([NotNull] HScriptParser.IfBlockContext context)
     {
         int blockIndex = 0;
         foreach (var expr in context.expression())
         {
-            var ret = Visit(expr);
-            bool eval;
-
-            if (ret is bool b)
-                eval = b;
-            else if (ret is int i)
-                eval = i == 0;
-            else if (ret is uint ui)
-                eval = ui == 0;
-            else
-                throw new HScriptInvalidOperationException("Cannot evaluate non-boolean value");
-
-            if (eval)
-                if (blockIndex == 0)
-                    return Visit(context.opBlock());
-                else
-                    return Visit(context.elseIfBlock(blockIndex - 1));
-
+            if (Operations.Evaluate(Visit(expr)))
+                return Visit(blockIndex == 0 ? context.opBlock() : context.elseIfBlock(blockIndex - 1));
+            
             blockIndex++;
         }
+
+        if (context.elseBlock() is { } elB)
+            return Visit(elB.opBlock());
 
         return null;
     }
 
+    /// <summary>
+    /// Enters either a while or until loop until the specified condition is met.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptInvalidOperationException"></exception>
     public override object? VisitWhileBlock([NotNull] HScriptParser.WhileBlockContext context)
     {
-        bool Evaluate(object? ret)
-        {
-            bool eval;
+        Func<object?, bool> eval = context.WHILE().GetText() == "while"
+            ? Operations.Evaluate
+            : eval => !Operations.Evaluate(eval);
 
-            if (ret is bool b)
-                eval = b;
-            else if (ret is int i)
-                eval = i == 0;
-            else if (ret is uint ui)
-                eval = ui == 0;
-            else
-                throw new HScriptInvalidOperationException("Cannot evaluate non-boolean value");
-
-            return eval;
-        }
-
-        bool InvEvaluate(object? value)
-            => !Evaluate(value);
-
-        Func<object?, bool> cond = context.WHILE().GetText() == "while" ? Evaluate : InvEvaluate;
-
-        if (cond(Visit(context.expression())))
-            while (cond(Visit(context.expression())))
+        if (eval(Visit(context.expression())))
+            while (eval(Visit(context.expression())))
                 Visit(context.opBlock()[0]);
         else if (context.opBlock().Length > 1 && context.opBlock()[1] is { } block)
             Visit(block);
@@ -523,6 +745,38 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         return null;
     }
 
+    /// <summary>
+    /// Allows for the definition of several functions of variables without having to specify the class names for every <see cref="HFunction"/>
+    /// <para>
+    /// PLEASE NOTE: <see langword="HScript"/> does not support instancing, meaning that the keyword <see langword="sclass"/> means <see langword="static class"/>
+    /// and will not define a class.
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override object? VisitStaticClass([NotNull] HScriptParser.StaticClassContext context)
+    {
+        RuntimeMembers.AssignClassName = 
+            (context.TYPE() is { } type 
+            ? type.GetText() 
+            : context.IDENTIFIER().GetText()) + '.';
+
+        Visit(context.block());
+        RuntimeMembers.AssignClassName = "";
+
+        return new HUndefined();
+    }
+
+    /// <summary>
+    /// Allows you to input real C# code, compile it, then run it.
+    /// <para>
+    /// Note: This takes FOREVER depending on the size of the input program and may not always be beneficial.
+    /// If you only need to run one or two lines, then <see langword="hscript::TYPE::CS_METHOD"/> should be used instead.
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptInvalidInputParameterException"></exception>
     public override object? VisitDynamicCSharpCallExpression([NotNull] HScriptParser.DynamicCSharpCallExpressionContext context)
     {
         var cscode = Visit(context.expression());
@@ -534,6 +788,15 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         return DynamicCSharp.Run(code).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Uses reflection to invoke a static C# method.
+    /// <para>
+    /// Example: <see langword="hscript::void::System.Console.WriteLine(hello_world_string)"/>
+    /// </para>
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    /// <exception cref="HScriptUnknownFunctionReferenceException"></exception>
     public override object? VisitHscriptCallExpression([NotNull] HScriptParser.HscriptCallExpressionContext context)
     {
         var special = context.specialHScript();
@@ -551,15 +814,67 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         if (func.IDENTIFIER() is { } fhid)
             funcID = fhid.GetText();
 
-        var ret = DynamicCSharp.InvokeMethodFromName(funcID.ResolveAssemblyPaths(), func.expression().Select(Visit).ToArray());
+        object?[] args = func.expression().Select(Visit).Where(arg => arg is not HUndefined).ToArray();
+        var ret = DynamicCSharp.InvokeMethodFromName(funcID.ResolveAssemblyPaths(), args);
 
         if (ret as Type == typeof(void))
-            throw new HScriptUnknownFunctionReferenceException(funcID.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries)[^1], context);
+        {
+            if (args is null || args.Length == 0)
+                throw new HScriptUnknownFunctionReferenceException(funcID, context);
+
+            throw new HScriptUnknownFunctionReferenceException(funcID, args.Select(arg => arg?.GetType()).ToArray(), context);
+        }
 
         if (type is null || ret is null)
             return null;
 
         return Convert.ChangeType(ret, type);
+    }
+
+    /// <summary>
+    /// Uses a try/catch to handle exceptions.
+    /// <see cref="HException"/> and <see cref="Exception"/> will be handled differently.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override object? VisitTryCatch([NotNull] HScriptParser.TryCatchContext context)
+    {
+        try
+        {
+            return Visit(context.block());
+        }
+        catch (HException hex)
+        {
+            foreach (var cBlock in context.exBlock())
+            {
+                foreach (var exID in cBlock.exceptionInfo())
+                {
+                    if (exID.IDENTIFIER(0).GetText() == hex.GetTypeName()
+                        || hex.InnerException.GetTypeName() == exID.IDENTIFIER(0).GetText())
+                    {
+                        // Add variable to stack
+
+                        Dictionary<string, object?> vars = new();
+                        if (exID.IDENTIFIER(0) is { } fhid)
+                            vars.Add(fhid.GetText(), hex);
+
+                        RuntimeMembers.CallStack.Push(new("try-catch-handler".AsMemberName(), vars));
+                        var ret = Visit(cBlock.block());
+                        RuntimeMembers.CallStack.Pop();
+
+                        return ret;
+                    }
+                }
+            }
+
+            Logging.WriteException("Unhandled exception", hex);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException("Runtime error while visiting try/catch", ex);
+        }
+
+        return null;
     }
 
     /* Operations */
@@ -590,6 +905,42 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             "**" => Operations.Power(left, right),
             _ => throw new HScriptUnknownOperationException($"Unknown multiplicative operator '{context.multOp().GetText()}'")
         };
+    }
+
+    public override object VisitAssignOpExpression([NotNull] HScriptParser.AssignOpExpressionContext context)
+    {
+        var target = Visit(context.expression(0));
+        var targetName = context.expression(0).GetText();
+        var value = Visit(context.expression(1));
+
+        var ret = context.assignOp().GetText() switch
+        {
+            "+=" => Operations.Add(target, value),
+            "-=" => Operations.Subtract(target, value),
+            "*=" => Operations.Multiply(target, value),
+            "/=" => Operations.Divide(target, value),
+            _ => throw new HScriptUnknownOperationException($"Unknown assignment operator '{context.assignOp().GetText()}'")
+        };
+
+        switch (RuntimeMembers.LocateVariable(targetName, out _))
+        {
+            case ScopeType.NotFound:
+                throw new HScriptUnknownOperationException($"Value required to perform assignment operator on identifier '{targetName}'");
+
+            case ScopeType.Global:
+                RuntimeMembers.Variables[targetName] = ret;
+                break;
+
+            case ScopeType.Preset:
+                RuntimeMembers.PresetVariables[targetName] = ret;
+                break;
+
+            case ScopeType.Scoped:
+                RuntimeMembers.CurrentScope!.ScopedVariables[targetName] = ret;
+                break;
+        }
+
+        return ret;
     }
 
     public override object? VisitComparisonExpression([NotNull] HScriptParser.ComparisonExpressionContext context)
@@ -639,6 +990,18 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         };
     }
 
+    public override object? VisitDoubleStatementExpression([NotNull] HScriptParser.DoubleStatementExpressionContext context)
+    {
+        var value = Visit(context.expression());
+
+        return context.doubleOp().GetText() switch
+        {
+            "++" => Operations.PlusPlus(value),
+            "--" => Operations.MinusMinus(value),
+            _ => throw new HScriptUnknownOperationException($"Unknown unary operator '{context.doubleOp().GetText()}'")
+        };
+    }
+
     /* Method helpers */
 
     private object? ResolveNestedVariables(object? value)
@@ -647,7 +1010,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
         if (value is string varName && varName.Length > 1)
             if (varName.StartsWith('@'))
             {
-                if (RuntimeMembers.LocateVariable(varName[1..], out var variable) != -1)
+                if (RuntimeMembers.LocateVariable(varName[1..], out var variable) is not ScopeType.NotFound)
                 {
                     var ret = ResolveNestedVariables(variable);
 
@@ -661,7 +1024,7 @@ internal class HScriptRuntime : HScriptBaseVisitor<object?>
             }
             else
             {
-                if (RuntimeMembers.LocateVariable(varName, out var variable) != -1)
+                if (RuntimeMembers.LocateVariable(varName, out var variable) is not ScopeType.NotFound)
                     return variable;
 
                 return new HUndefined();

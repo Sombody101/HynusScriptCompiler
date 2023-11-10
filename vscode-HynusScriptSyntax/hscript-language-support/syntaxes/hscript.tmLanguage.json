@@ -8,11 +8,11 @@
         },
         {
             "name": "keyword.operator",
-            "match": "\\+|-|\\*|\\!|\\~|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
+            "match": "\\+=|\\-=|\\*=|\\/=|\\+|-|\\*|\\!|\\~|/|%|!=|==|>|<|>=|<=|&&|\\|\\||\\^|:!=|:==|\\?|\\*\\*"
         },
         {
             "name": "keyword",
-            "match": "\\b(if|else|while|until|for|foreach|try|catch|fun|func|function|return|and|or|xor|scoped|local)\\b"
+            "match": "\\b(if|else|while|until|for|foreach|try|catch|sclass|fun|func|function|typecast|return|and|or|xor|scoped|local)\\b"
         },
         {
             "name": "keyword.special",
@@ -85,71 +85,17 @@
             "end": "`"
         },
         {
-            "name": "string.quoted.double.dollar",
+            "name": "variable.constant.interpolated-string",
             "begin": "\\$\"",
             "end": "\"",
             "patterns": [
-                {
-                    "name": "punctuation.definition.string.begin",
-                    "match": "\\$\""
-                },
-                {
-                    "name": "punctuation.definition.string.end",
-                    "match": "\""
-                },
-                {
-                    "name": "variable.other.interpolated",
-                    "begin": "\\{.*?\\}",
-                    "end": "\\}",
-                    "patterns": [
-                        {
-                            "name": "punctuation.section.embedded.begin",
-                            "match": "\\{"
-                        },
-                        {
-                            "name": "punctuation.section.embedded.end",
-                            "match": "\\}"
-                        },
-                        {
-                            "name": "constant.other.placeholder",
-                            "match": "\\@?[a-zA-Z_][a-zA-Z0-9_]*"
-                        }
-                    ]
-                }
             ]
         },
         {
-            "name": "string.quoted.backtick.dollar",
+            "name": "variable.constant.interpolated-string",
             "begin": "\\$`",
             "end": "`",
             "patterns": [
-                {
-                    "name": "punctuation.definition.string.begin",
-                    "match": "\\$`"
-                },
-                {
-                    "name": "punctuation.definition.string.end",
-                    "match": "`"
-                },
-                {
-                    "name": "variable.other.interpolated",
-                    "begin": "\\{.*?\\}",
-                    "end": "\\}",
-                    "patterns": [
-                        {
-                            "name": "punctuation.section.embedded.begin",
-                            "match": "\\{"
-                        },
-                        {
-                            "name": "punctuation.section.embedded.end",
-                            "match": "\\}"
-                        },
-                        {
-                            "name": "constant.other.placeholder",
-                            "match": "\\@?[a-zA-Z_][a-zA-Z0-9_]*"
-                        }
-                    ]
-                }
             ]
         },
         {

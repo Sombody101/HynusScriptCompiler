@@ -1,4 +1,4 @@
-// Generated from d:/HynusScriptCompiler/HynusScriptCompiler/ANTLRScripts/HScript.g4 by ANTLR 4.13.1
+// Generated from f:/HynusScriptCompiler/HynusScriptCompiler/ANTLRScripts/HScript.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -97,6 +97,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitTryCatch(HScriptParser.TryCatchContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link HScriptParser#exBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterExBlock(HScriptParser.ExBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#exBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitExBlock(HScriptParser.ExBlockContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link HScriptParser#exceptionInfo}.
 	 * @param ctx the parse tree
 	 */
@@ -136,6 +146,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunctionDefinition(HScriptParser.FunctionDefinitionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link HScriptParser#typeCastDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeCastDefinition(HScriptParser.TypeCastDefinitionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#typeCastDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeCastDefinition(HScriptParser.TypeCastDefinitionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link HScriptParser#functionParameter}.
 	 * @param ctx the parse tree
@@ -325,6 +345,18 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitFunctionCallExpression(HScriptParser.FunctionCallExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code assignOpExpression}
+	 * labeled alternative in {@link HScriptParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignOpExpression(HScriptParser.AssignOpExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code assignOpExpression}
+	 * labeled alternative in {@link HScriptParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignOpExpression(HScriptParser.AssignOpExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code unaryExpression}
 	 * labeled alternative in {@link HScriptParser#expression}.
 	 * @param ctx the parse tree
@@ -337,6 +369,18 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitUnaryExpression(HScriptParser.UnaryExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code doubleStatementExpression}
+	 * labeled alternative in {@link HScriptParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterDoubleStatementExpression(HScriptParser.DoubleStatementExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code doubleStatementExpression}
+	 * labeled alternative in {@link HScriptParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitDoubleStatementExpression(HScriptParser.DoubleStatementExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code functionClosureExpression}
 	 * labeled alternative in {@link HScriptParser#expression}.
 	 * @param ctx the parse tree
@@ -348,16 +392,6 @@ public interface HScriptListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunctionClosureExpression(HScriptParser.FunctionClosureExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link HScriptParser#doubleStatement}.
-	 * @param ctx the parse tree
-	 */
-	void enterDoubleStatement(HScriptParser.DoubleStatementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link HScriptParser#doubleStatement}.
-	 * @param ctx the parse tree
-	 */
-	void exitDoubleStatement(HScriptParser.DoubleStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link HScriptParser#addOp}.
 	 * @param ctx the parse tree
@@ -409,6 +443,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitComareOp(HScriptParser.ComareOpContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link HScriptParser#assignOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignOp(HScriptParser.AssignOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#assignOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignOp(HScriptParser.AssignOpContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link HScriptParser#boolOp}.
 	 * @param ctx the parse tree
 	 */
@@ -438,6 +482,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVerbatimString(HScriptParser.VerbatimStringContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link HScriptParser#scriptImport}.
+	 * @param ctx the parse tree
+	 */
+	void enterScriptImport(HScriptParser.ScriptImportContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#scriptImport}.
+	 * @param ctx the parse tree
+	 */
+	void exitScriptImport(HScriptParser.ScriptImportContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code scriptVersionConfig}
 	 * labeled alternative in {@link HScriptParser#scriptConfiguration}.
@@ -475,18 +529,6 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitEnableDebugConfig(HScriptParser.EnableDebugConfigContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code importScriptConfig}
-	 * labeled alternative in {@link HScriptParser#scriptConfiguration}.
-	 * @param ctx the parse tree
-	 */
-	void enterImportScriptConfig(HScriptParser.ImportScriptConfigContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code importScriptConfig}
-	 * labeled alternative in {@link HScriptParser#scriptConfiguration}.
-	 * @param ctx the parse tree
-	 */
-	void exitImportScriptConfig(HScriptParser.ImportScriptConfigContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link HScriptParser#scriptVersion}.
 	 * @param ctx the parse tree
 	 */
@@ -516,16 +558,6 @@ public interface HScriptListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEnableDebug(HScriptParser.EnableDebugContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link HScriptParser#importScript}.
-	 * @param ctx the parse tree
-	 */
-	void enterImportScript(HScriptParser.ImportScriptContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link HScriptParser#importScript}.
-	 * @param ctx the parse tree
-	 */
-	void exitImportScript(HScriptParser.ImportScriptContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link HScriptParser#arrBlock}.
 	 * @param ctx the parse tree
@@ -587,6 +619,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 */
 	void exitOpBlock(HScriptParser.OpBlockContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link HScriptParser#staticClass}.
+	 * @param ctx the parse tree
+	 */
+	void enterStaticClass(HScriptParser.StaticClassContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#staticClass}.
+	 * @param ctx the parse tree
+	 */
+	void exitStaticClass(HScriptParser.StaticClassContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link HScriptParser#nestedVariable}.
 	 * @param ctx the parse tree
 	 */
@@ -606,6 +648,16 @@ public interface HScriptListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLocalIdentifier(HScriptParser.LocalIdentifierContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link HScriptParser#tempIdentifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterTempIdentifier(HScriptParser.TempIdentifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link HScriptParser#tempIdentifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitTempIdentifier(HScriptParser.TempIdentifierContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link HScriptParser#specialHScript}.
 	 * @param ctx the parse tree

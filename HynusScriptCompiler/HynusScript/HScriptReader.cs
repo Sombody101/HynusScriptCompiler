@@ -1,3 +1,5 @@
+//#define SKIP_ERROR_HANDLE // Debugging
+
 using Antlr4.Runtime;
 using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
 using HynusScriptCompiler.HynusScript.Exceptions.RuntimeExceptions;
@@ -12,19 +14,29 @@ public enum HScriptResult
     Successful,
     ScriptError,
     ScriptNotFound,
-    UnsuportedScriptVersion,
+    UnsupportedScriptVersion,
     LexerError,
     ParserError,
     UnidentifiedParseError,
     InvalidScriptVersion,
+    UnhandledException,
+    UnsupportedOperation,
+    FileImportNotFound,
+    FileImportAmbiguity,
 }
 
-internal class HScriptReader : HScriptBaseVisitor<int>
+internal class HScriptReader
 {
     private readonly string script;
 
     public HScriptReader(string fromFile = "", string scriptData = "")
     {
+        if (fromFile == "")
+        {
+            Logging.LogError("There is currently no support for loading a script as a string");
+            Environment.Exit((int)HScriptResult.UnsupportedOperation);
+        }
+
         if (scriptData == "")
         {
             if (fromFile == "")
@@ -34,6 +46,16 @@ internal class HScriptReader : HScriptBaseVisitor<int>
         }
 
         script = scriptData;
+        string fullPath = "";
+
+        if (fromFile is not "")
+            fullPath = Path.GetFullPath(fromFile);
+
+        string entry = fromFile is "" ? "text-input" : fullPath;
+
+        RuntimeMembers.FileStack.Push(entry);
+        RuntimeMembers.ImportedFiles.Add(entry);
+        RuntimeMembers.SetProjectRoot(fromFile is "" ? "text-input" : Path.GetDirectoryName(Path.GetFullPath(fullPath))! + '\\');
     }
 
     public static HScriptResult RunScriptFromFile(string scriptPath)
@@ -70,7 +92,6 @@ internal class HScriptReader : HScriptBaseVisitor<int>
         if (lexerListener.ErrorOccured)
             return HScriptResult.LexerError;
 
-        CommonTokenStream? tokens = new(lexer);
 
         if (Config.ShowLogs)
         {
@@ -79,7 +100,7 @@ internal class HScriptReader : HScriptBaseVisitor<int>
             Logging.WriteLine("Beginning token parse");
         }
 
-        HScriptParser parser = new(tokens);
+        HScriptParser parser = new(new CommonTokenStream(lexer));
         parser.RemoveErrorListeners();
         var parserListener = new HScriptParserErrorListener();
         parser.AddErrorListener(parserListener);
@@ -97,6 +118,9 @@ internal class HScriptReader : HScriptBaseVisitor<int>
             Logging.Log("Running script");
         }
 
+#if SKIP_ERROR_HANDLE
+        visitor.Visit(context);
+#else
         try
         {
             visitor.Visit(context);
@@ -106,6 +130,11 @@ internal class HScriptReader : HScriptBaseVisitor<int>
             HRuntime.Error(e);
             return HScriptResult.ScriptError;
         }
+        catch (Exception e)
+        {
+            HRuntime.Error(e);
+        }
+#endif
 
         return HScriptResult.Successful;
     }

@@ -2,12 +2,14 @@
 using Microsoft.CodeAnalysis.Scripting;
 using Spectre.Console;
 using System.Reflection;
+using HynusScriptCompiler.HynusScript.Exceptions;
+using HynusScriptCompiler.HynusScript.Exceptions.HScriptExceptions;
 
 namespace HynusScriptCompiler.HynusScript.Runtime;
 
 internal static class DynamicCSharp
 {
-    public static object? InvokeMethodFromName(string methodName, object?[]? args)
+    public static object? InvokeMethodFromName(string methodName, object?[] args)
     {
         args ??= Array.Empty<object>();
         string[] methodParts = methodName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
@@ -18,7 +20,7 @@ internal static class DynamicCSharp
         if (!TypeLookup.TryGetValue(typeName, out var assembly))
             assembly = typeName;
 
-        var type = Type.GetType($"{typeName}, {assembly}");
+        var type = Type.GetType(typeName) ?? Type.GetType($"{typeName}, {assembly}");
 
         Type[] argTypes = args?.Select(arg => arg?.GetType()).ToArray() ?? Array.Empty<Type>();
 
@@ -26,11 +28,8 @@ internal static class DynamicCSharp
 
         if (methodInfo != null)
             return methodInfo.Invoke(null, args);
-        else
-        {
-            Console.WriteLine("Method not found");
-            return null;
-        }
+
+        return typeof(void);
     }
 
     public static async Task<object?> Run(string code)

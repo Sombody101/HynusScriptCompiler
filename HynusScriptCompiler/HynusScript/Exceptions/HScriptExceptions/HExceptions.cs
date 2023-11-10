@@ -31,7 +31,7 @@ public class HScriptInvalidInputParameterCountException : HException
     { }
 
     public HScriptInvalidInputParameterCountException(int properCount, ParserRuleContext? context = null)
-    : base($"Input parameter count is {properCount}", context)
+        : base($"Input parameter count is {properCount}", context)
     { }
 }
 
@@ -47,6 +47,11 @@ public class HScriptUnknownFunctionReferenceException : HException
     public HScriptUnknownFunctionReferenceException(string functionName, ParserRuleContext? context = null)
         : base($"Failed to find a function by the name of '{functionName}'", context)
     { }
+
+    public HScriptUnknownFunctionReferenceException(string functionName, IEnumerable<Type?> types, ParserRuleContext? context = null)
+    : base($"Failed to find a function by the name of '{functionName}' with parameters of type {string.Join(", ", 
+        types.Select(type => '\'' + type?.Name + '\''))}", context)
+    { }
 }
 
 public class HScriptUnknownVariableReferenceException : HException
@@ -60,5 +65,19 @@ public class HScriptUnknownScriptCaseStyleException : HException
 {
     public HScriptUnknownScriptCaseStyleException(string receivedStyle, ParserRuleContext? context = null)
         : base($"Unknown case style '{receivedStyle}'", context)
+    { }
+}
+
+public class HScriptUnknownTypeException : HException
+{
+    public HScriptUnknownTypeException(string type, ParserRuleContext? context = null)
+        : base($"Unknown HScript type '{type}'", context)
+    { }
+}
+
+public class HScriptInvalidScriptVersionException : HException
+{
+    public HScriptInvalidScriptVersionException(string message, ParserRuleContext? context = null)
+        : base(message, context) 
     { }
 }
